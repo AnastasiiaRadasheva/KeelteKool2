@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KeeltekoolV2.Core\KeeltekoolV2.Core.csproj" />
+    <ProjectReference Include="..\KeeltekoolV2.Data\KeeltekoolV2.Data.csproj" />
   </ItemGroup>
 
 </Project>
