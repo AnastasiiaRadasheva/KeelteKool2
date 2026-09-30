@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../KeeltekoolV2.UnitTesting/KeeltekoolV2.UnitTesting.csproj" Id="9ed535ec-75b1-4cbc-be55-c58d99a7efa6" />
   <Project Path="KeelteKool2.csproj" />
   <Project Path="KeeltekoolV2.ApplicationServices/KeeltekoolV2.ApplicationServices.csproj" />
   <Project Path="KeeltekoolV2.Core/KeeltekoolV2.Core.csproj" />
