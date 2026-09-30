@@ -1,4 +1,4 @@
-namespace KeelteKool2
+namespace KeelteKoolV2
 {
     public class Program
     {
@@ -8,6 +8,15 @@ namespace KeelteKool2
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            //services
+            //apiclients
+
+            //dbcontext
+
+            //identity
+
+            //auth
 
             var app = builder.Build();
 
