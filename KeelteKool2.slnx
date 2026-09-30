@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../KeeltekoolV2.ApplicationServices/KeeltekoolV2.ApplicationServices.csproj" />
+  <Project Path="../KeeltekoolV2.Core/KeeltekoolV2.Core.csproj" />
+  <Project Path="../KeeltekoolV2.Data/KeeltekoolV2.Data.csproj" />
+  <Project Path="KeelteKool2.csproj" />
+</Solution>
