@@ -1,4 +1,4 @@
-namespace KeelteKoolV2
+namespace KeelteKool2
 {
     public class Program
     {
