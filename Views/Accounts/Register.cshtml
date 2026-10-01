@@ -1,4 +1,4 @@
-﻿@model KeelteKool2.Models.Accounts.RegisterViewModel
+@model KeelteKool2.Models.Accounts.RegisterViewModel
 
 <h1>Registreeri kasutaja</h1>
 
@@ -27,10 +27,11 @@
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="PlaceHolder"></label>
+                <label asp-for="PlaceHolder">Kasutajanimi</label>
                 <input asp-for="PlaceHolder" class="form-control" />
                 <span asp-validation-for="PlaceHolder" class="text-danger"></span>
             </div>
+            <button type="submit" class="btn btn-primary mt-3">Registreeru</button>
         </form>
     </div>
 </div>

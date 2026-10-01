@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity;
+@using Microsoft.AspNetCore.Identity;
 @inject SignInManager<KeeltekoolV2.Core.Domain.ApplicationUser> signInManager;
 @inject UserManager<KeeltekoolV2.Core.Domain.ApplicationUser> userManager;
 @{
@@ -33,10 +33,12 @@
                         @if (signInManager.IsSignedIn(User))
                             {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Accounts" asp-action="Manage">Halda kontot</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Accounts" asp-action="ChangePassword">Muuda parooli</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Accounts" asp-action="Logout">Logi Välja</a>
+                                <form method="post" asp-area="" asp-controller="Accounts" asp-action="Logout">
+                                    <button type="submit" class="nav-link btn btn-link text-dark">Logi välja</button>
+                                </form>
                             </li>
                             } 
                         else

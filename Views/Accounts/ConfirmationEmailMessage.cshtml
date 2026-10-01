@@ -1,5 +1,14 @@
-﻿@{
+@{
     ViewData["Title"] = "ConfirmEmailMessage";
 }
 
-<h3>Mine oma postkasti, et kinnitada oma kasutaja.</h3>
+@if (ViewBag.ConfirmationLink != null)
+{
+    <h3>Registreerimine õnnestus!</h3>
+    <p>Emaili ei saanud saata, sest emaili seaded puuduvad.</p>
+    <p>Kinnita oma konto, vajutades siia: <a href="@ViewBag.ConfirmationLink">Kinnita konto</a></p>
+}
+else
+{
+    <h3>Mine oma postkasti, et kinnitada oma kasutaja.</h3>
+}
