@@ -17,5 +17,7 @@ namespace KeelteKool2.Models.Accounts
         [Compare("Password", ErrorMessage = "Paroolid ei ühti.")]
         public string ConfirmPassword { get; set; }
         public string PlaceHolder { get; set; }
+
+        public RegisterStatus AccountStatus { get; set; } = RegisterStatus.Pending;
     }
 }
