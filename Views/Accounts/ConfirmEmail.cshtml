@@ -2,4 +2,10 @@
     ViewData["Title"] = "ConfirmEmail";
 }
 
-<h3>Aitäh! :3 Nüüd saad sisse logida </h3>
+@if (ViewBag.IsSuccess == true)
+{
+    <h3>Aitäh! :3 Nüüd saad sisse logida </h3>
+} else {
+
+<h3>Kinnitamine nurjus :c</h3>
+}

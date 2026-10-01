@@ -16,7 +16,7 @@ namespace KeelteKool2.Controllers
         private readonly IEmailingServices _emailingServices;
         public IActionResult Index()
         {
-            return View();
+            return NotFound();
         }
 
         public AccountsController
@@ -52,7 +52,7 @@ namespace KeelteKool2.Controllers
         }
 
         /// <summary>
-        /// 
+        /// Registers a user in db, sends email to user for confirmation
         /// </summary>
         /// <param name="vm"></param>
         /// <returns></returns>
@@ -68,6 +68,7 @@ namespace KeelteKool2.Controllers
                     Name = vm.Name,
                     Email = vm.Email,
                     Placeholder = vm.PlaceHolder,
+                    AccountStatus = (KeeltekoolV2.Core.Domain.RegisterStatus)Models.Accounts.RegisterStatus.Pending
                 };
 
                 var result = await _userManager.CreateAsync(user, vm.Password);
@@ -113,5 +114,103 @@ namespace KeelteKool2.Controllers
 
             return View();
         }
+
+        /// <summary>
+        /// User is returned to this view, when link in email clicked.
+        /// </summary>
+        /// <param name="userID">users id</param>
+        /// <param name="token">clicktoken</param>
+        /// <returns>This view</returns>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail (string userID, string token)
+        {
+            if (userID == null || token == null) 
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var user = await _userManager.FindByIdAsync(userID);
+
+            if (user == null) 
+            {
+                ViewBag.ErrorMessage = $"The user with id of {userID} is not valid";
+                return NotFound();
+            }
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            if (result.Succeeded)
+            {
+                ViewBag.IsSuccess = true;
+                return View();
+            }
+            else
+            {
+                ViewBag.IsSuccess = false;
+                return View(); 
+            }
+            return RedirectToAction("Index", "Home");
+        }
+
+        /// <summary>
+        /// gets the login view
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login(string? returnUrl)
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Logib sisse, tagastab küpsise
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && !user.EmailConfirmed && (await _userManager.CheckPasswordAsync(user, model.Password)))
+                {
+                    ModelState.AddModelError(string.Empty, "Email not confirmed yet");
+                    return View(model);
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, true);
+                if (result.Succeeded) 
+                {
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+                    else
+                    {
+                        return RedirectToAction("Index", "Home");
+                    }
+                }
+
+                if (result.IsLockedOut)
+                {
+                    return View("AccountLocked");
+                }
+                ModelState.AddModelError("", "Sisselogimise katse ebaõnnestus");
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+        }
+
+
     }
 }
