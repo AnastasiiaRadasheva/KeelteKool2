@@ -1,3 +1,8 @@
+using KeeltekoolV2.Core.Domain;
+using KeeltekoolV2.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 namespace KeelteKool2
 {
     public class Program
@@ -13,10 +18,25 @@ namespace KeelteKool2
             //apiclients
 
             //dbcontext
+            builder.Services.AddDbContext<KeeltekoolV2Context>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             //identity
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
+                options =>
+                {
+                    options.SignIn.RequireConfirmedAccount = true;
+                    options.Password.RequiredLength = 8;
+                    options.Tokens.EmailConfirmationTokenProvider = "CustomEmailConfirmation";
+                    options.Lockout.MaxFailedAccessAttempts = 3;
+                    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                })
+                .AddEntityFrameworkStores<KeeltekoolV2Context>()
+                .AddDefaultTokenProviders()
+                .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("CustomEmailConfirmation");
 
             //auth
+
 
             var app = builder.Build();
 
