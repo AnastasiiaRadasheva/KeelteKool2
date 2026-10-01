@@ -10,5 +10,7 @@ namespace KeeltekoolV2.Core.Domain
     {
         //public ClaimsIdentity UserCredential { get; set; } = null;
         public string Placeholder { get; set; }
+
+        public string Name { get; set; }
     }
 }

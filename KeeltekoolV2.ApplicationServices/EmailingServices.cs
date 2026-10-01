@@ -1,0 +1,82 @@
+﻿using KeeltekoolV2.Core.DTO;
+using KeeltekoolV2.Core.ServiceInterface;
+using MailKit.Net.Smtp;
+using Microsoft.Extensions.Configuration;
+using MimeKit;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace KeeltekoolV2.ApplicationServices
+{
+    public class EmailingServices : IEmailingServices
+    {
+        private readonly IConfiguration _config;
+        public EmailingServices
+            (
+                IConfiguration config
+            )
+        {
+            _config = config;
+        }
+
+        public void SendEmail(EmailDTO dto)
+        {
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(_config.GetSection("EmailUserName").Value));
+            email.To.Add(MailboxAddress.Parse(dto.To));
+            email.Subject = dto.Subject;
+
+            var builder = new BodyBuilder
+            {
+                HtmlBody = dto.Body
+            };
+
+            //failide lisamine
+            foreach (var file in dto.Attachment)
+            {
+                if (file.Length > 0 && file.Length < 10485760) //10MB
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        file.CopyTo(ms);
+                        ms.Position = 0;
+                        //var fileBytes = ms.ToArray();
+                        //builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
+                        builder.Attachments.Add(file.FileName, ms.ToArray());
+                    }
+                }
+            }
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+
+            smtp.Connect(_config.GetSection("EmailHost").Value, 587, MailKit.Security.SecureSocketOptions.StartTls);
+            smtp.Authenticate(_config.GetSection("EmailUserName").Value, _config.GetSection("EmailPassword").Value);
+            smtp.Send(email);
+            smtp.Disconnect(true);
+        }
+
+        public void SendEmailToken(EmailTokenDTO dto, string token)
+        {
+            dto.Token = token;
+            var email = new MimeMessage();
+
+            email.From.Add(MailboxAddress.Parse(_config.GetSection("EmailUserName").Value));
+            email.To.Add(MailboxAddress.Parse(dto.To));
+            email.Subject = dto.Subject;
+            var builder = new BodyBuilder
+            {
+                HtmlBody = dto.Body,
+            };
+
+            email.Body = builder.ToMessageBody();
+            using var smtp = new SmtpClient();
+
+            smtp.Connect(_config.GetSection("EmailHost").Value, 587, MailKit.Security.SecureSocketOptions.StartTls);
+            smtp.Authenticate(_config.GetSection("EmailUserName").Value, _config.GetSection("EmailPassword").Value);
+            smtp.Send(email);
+            smtp.Disconnect(true);
+        }
+    }
+}
