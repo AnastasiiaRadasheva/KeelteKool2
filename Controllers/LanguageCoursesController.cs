@@ -4,6 +4,7 @@ using KeeltekoolV2.Data;
 using KeelteKool2.Models.LanguageCourses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using KeeltekoolV2.Core.Domain;
 
 namespace KeelteKool2.Controllers
 {
@@ -17,11 +18,23 @@ namespace KeelteKool2.Controllers
             _context = context;
             _languageCoursesServices = languageCoursesServices;
         }
+
         public IActionResult Index()
         {
-            //var result = _context.L
-            return View();
-            //need to get all, not under test rn
+            //gets everything
+            //var result = _context.LanguageCourses.ToList();
+            //get only some, with limited info 
+            var result = _context.LanguageCourses
+                .OrderBy(x => x.Keel)
+                .Select(x => new LanguageCourseViewModel
+                {
+                    Id = x.Id,
+                    Nimetus = x.Nimetus,
+                    Keel = x.Keel,
+                })
+                .Take(20)
+                .ToList();
+            return View(result);
         }
 
         [HttpGet]
@@ -30,10 +43,11 @@ namespace KeelteKool2.Controllers
             LanguageCourseViewModel vm = new();
             return View(vm);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         //[Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create(LanguageCourseViewModel vm) 
+        public async Task<IActionResult> Create(LanguageCourseViewModel vm)
         {
             //kontrollime et vm ei oleks null
             if (vm == null)
@@ -43,11 +57,11 @@ namespace KeelteKool2.Controllers
             //kontrollime et vmi modelstate on õige
             if (!ModelState.IsValid)
             {
-                return RedirectToAction("Error", "Home");
+                return View(vm);
             }
             //teeme uue DTO-objekti
             //asetame dtosse vmi andmed
-            var dto = new LanguageCourseDTO() 
+            var dto = new LanguageCourseDTO()
             {
                 Id = vm.Id,
                 Nimetus = vm.Nimetus,

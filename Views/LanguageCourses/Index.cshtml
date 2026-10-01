@@ -1,5 +1,38 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model IEnumerable<KeelteKool2.Models.LanguageCourses.LanguageCourseViewModel>
 @{
+    int rownumber = 1;
+    ViewBag.Title = "Keelekursused";
 }
+@*Later check for role of the user, hide this button if not admin or teacher*@
+<div>
+    <a asp-action="Create" asp-controller="LanguageCourses" class="btn btn-dark">Lisa uus keelekursus</a>
+</div>
+
+<div class="h1">
+    Keelekursused
+</div>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Nr</th>
+            <th scope="col">Nimetus</th>
+            <th scope="col">Õpetatav keel</th>
+            <th scope="col">Tegevused</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var course in Model)
+        {
+            <tr>
+                <td>@rownumber</td>
+                <td>@course.Nimetus</td>
+                <td>@course.Keel</td>
+                <td>
+                    TODO: add details update and delete funk from controller
+                </td>
+            </tr>
+            rownumber++;
+        }
+    </tbody>
+</table>

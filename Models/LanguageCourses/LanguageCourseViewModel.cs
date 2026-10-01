@@ -7,10 +7,10 @@
     //and they all lived happily ever after.
     public class LanguageCourseViewModel
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; } //optional sest index vaade  ei vaja seda
         public string Nimetus { get; set; }
         public string Keel { get; set; }
-        public string Tase { get; set; }
-        public string Kirjeldus { get; set; }
+        public string? Tase { get; set; }//optional sest index vaade  ei vaja seda
+        public string? Kirjeldus { get; set; }//optional sest index vaade  ei vaja seda
     }
 }
