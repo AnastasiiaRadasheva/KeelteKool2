@@ -84,5 +84,28 @@ namespace KeelteKool2.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> Details(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return NotFound();
+            }
+            var languageCourse = await _languageCoursesServices.DetailsAsync(id);
+            if (languageCourse == null)
+            {
+                return NotFound();
+            }
+            var vm = new LanguageCourseViewModel() { };
+          
+                vm.Kirjeldus = languageCourse.Kirjeldus;
+                vm.Nimetus = languageCourse.Nimetus;
+                vm.Keel = languageCourse.Keel;
+                vm.Tase = languageCourse.Tase;
+             
+      
+        
+            return View(vm);
+        }
     }
 }

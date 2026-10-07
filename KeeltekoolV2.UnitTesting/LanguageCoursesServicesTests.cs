@@ -67,11 +67,11 @@ namespace KeeltekoolV2.UnitTesting
             //kontroll
             //kontrollime et tagastati midagi
             Assert.NotNull(result);
-            //kontrollime et tagastatud objekti id on sama nagu see mis andmebaasi lisatud sai
+            ////kontrollime et tagastatud objekti id on sama nagu see mis andmebaasi lisatud sai
             Assert.Equal(result.Id, createdCourse.Id);
             Assert.True(result.Id == createdCourse.Id);
 
-            //võrdleme kas objekt on sama nagu see mis genereerisime, va. id-ga
+            ////võrdleme kas objekt on sama nagu see mis genereerisime, va. id-ga
             Assert.Equal(result, createdCourse);
            
         }

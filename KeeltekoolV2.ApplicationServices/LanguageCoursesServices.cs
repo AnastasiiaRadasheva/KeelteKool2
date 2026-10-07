@@ -5,6 +5,7 @@ using KeeltekoolV2.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace KeeltekoolV2.ApplicationServices
 {
@@ -17,7 +18,7 @@ namespace KeeltekoolV2.ApplicationServices
             _context = context;
         }
 
-        public async Task<LanguageCourse> Create(LanguageCourseDTO dto)
+        public async Task<LanguageCourse?> Create(LanguageCourseDTO dto)
         {
             //kontrollitakse kas dto omab mingeid andmeid
             if (dto == null)
@@ -31,11 +32,8 @@ namespace KeeltekoolV2.ApplicationServices
                 return null;
             }
 
-            //tekitab uue andmebaasis istuva objekti vastava mudeli järgi
             LanguageCourse domain = new LanguageCourse();
 
-            //omistab andmed andmeedastuseobjektist domeenimudelile
-            //lahendades ära küsimused mis ei lahendatud kontrolleris, nagu näiteks id, createdat, modifiedat
             domain.Id = Guid.NewGuid();
             domain.Nimetus = dto.Nimetus;
             domain.Keel = dto.Keel;
@@ -43,13 +41,10 @@ namespace KeeltekoolV2.ApplicationServices
             domain.Kirjeldus = dto.Kirjeldus ?? "";
             domain.CreatedAt = DateTime.Now;
             domain.ModifiedAt = DateTime.Now;
-            //later, require user id to be attached to "ModifiedBy" parameter to know who modified last
 
-            //teostatakse andmebaasi lisamise tegevus
             await _context.LanguageCourses.AddAsync(domain);
             await _context.SaveChangesAsync();
 
-            //tagastatakse domeenile kuuluv objekt
             return domain;
         }
 
@@ -60,7 +55,9 @@ namespace KeeltekoolV2.ApplicationServices
 
         public async Task<LanguageCourse> DetailsAsync(Guid id)
         {
-            return null;
+            var result = await _context.LanguageCourses
+                .FirstOrDefaultAsync(x => x.Id == id);
+            return result;
         }
 
         public async Task<LanguageCourse> Delete(Guid id)
