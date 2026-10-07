@@ -27,6 +27,18 @@
         <textarea asp-for="Kirjeldus" class="form-control"></textarea>
     </div>
 
-    <button type="submit" class="btn btn-warning">Salvesta</button>
+
+    @if (Model.Id.HasValue)
+    {
+        <input asp-action="update" asp-controller="LanguageCourses" type="submit" value="Loo Keelekursus" class='btn-success' />
+    }
+    else
+    {
+        <input asp-action="create" asp-controller="LanguageCourses" type="submit" value="Loo Keelekursus" class='btn-success' />
+    }
+
+    <a asp-action="create" asp-controller="LanguageCourses" class="btn btn-secondary">Tagasi</a>
+
+
     <a asp-action="Index" class="btn btn-primary">Tagasi</a>
 </form>

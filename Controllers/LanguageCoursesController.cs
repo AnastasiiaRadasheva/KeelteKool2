@@ -37,7 +37,7 @@ namespace KeelteKool2.Controllers
         public IActionResult Create()
         {
             LanguageCourseViewModel vm = new();
-            return View(vm);
+            return View("CreateUpdate",vm);
         }
 
         [HttpPost]
@@ -86,10 +86,15 @@ namespace KeelteKool2.Controllers
             };
             return View(vm);
         }
+   
 
         [HttpGet]
         public async Task<IActionResult> Update(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return NotFound();
+            }
             var languageCourse = await _languageCoursesServices.DetailsAsync(id);
             if (languageCourse == null)
             {
@@ -103,7 +108,7 @@ namespace KeelteKool2.Controllers
                 Tase = languageCourse.Tase,
                 Kirjeldus = languageCourse.Kirjeldus
             };
-            return View(vm);
+            return View("CreateUpdate", vm);
         }
 
         [HttpPost]
