@@ -2,9 +2,6 @@
 using KeeltekoolV2.Core.DTO;
 using KeeltekoolV2.Core.ServiceInterface;
 using KeeltekoolV2.Data;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 
 namespace KeeltekoolV2.ApplicationServices
@@ -50,10 +47,21 @@ namespace KeeltekoolV2.ApplicationServices
 
         public async Task<LanguageCourse?> Update(LanguageCourseDTO dto)
         {
-    
+            if (dto == null)
+            {
+                return null;
+            }
 
+            //leiame andmebaasist olemasoleva kursuse
             var domain = await _context.LanguageCourses
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
+
+            if (domain == null)
+            {
+                return null;
+            }
+
+            //muudame väljad, CreatedAt jääb samaks
             domain.Nimetus = dto.Nimetus;
             domain.Keel = dto.Keel;
             domain.Tase = dto.Tase ?? "";
@@ -86,6 +94,5 @@ namespace KeeltekoolV2.ApplicationServices
 
             return domain;
         }
-       
     }
 }

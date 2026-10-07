@@ -2,40 +2,36 @@
 @{
     ViewBag.Title = "Lisa keelekursus";
 }
-@*separate update create*@
-<div>
-    <h1>Lisa uus keelekursus</h1>
 
-    <form asp-action="Create" asp-controller="LanguageCourses" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<h1>Lisa uus keelekursus</h1>
 
-        <input asp-for="Id" type="hidden" />
+<form asp-action="Create" asp-controller="LanguageCourses" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-        <div class="form-group">
-            <label asp-for="Nimetus" class="control-label"></label>
-            <input asp-for="Nimetus" class="form-control" />
-            <span asp-validation-for="Nimetus" class="text-danger"></span>
-        </div>
+    <div class="mb-3">
+        <label asp-for="Nimetus" class="form-label"></label>
+        <input asp-for="Nimetus" class="form-control" />
+        <span asp-validation-for="Nimetus" class="text-danger"></span>
+    </div>
 
-        <div class="form-group">
-            <label asp-for="Keel" class="control-label"></label>
-            <input asp-for="Keel" class="form-control" />
-            <span asp-validation-for="Keel" class="text-danger"></span>
-        </div>
+    <div class="mb-3">
+        <label asp-for="Keel" class="form-label"></label>
+        <input asp-for="Keel" class="form-control" />
+        <span asp-validation-for="Keel" class="text-danger"></span>
+    </div>
 
-        <div class="form-group">
-            <label asp-for="Tase" class="control-label"></label>
-            <input asp-for="Tase" class="form-control" />
-            <span asp-validation-for="Tase" class="text-danger"></span>
-        </div>
+    <div class="mb-3">
+        <label asp-for="Tase" class="form-label"></label>
+        <input asp-for="Tase" class="form-control" />
+        <span asp-validation-for="Tase" class="text-danger"></span>
+    </div>
 
-        <div class="form-group">
-            <label asp-for="Kirjeldus" class="control-label"></label>
-            <input asp-for="Kirjeldus" class="form-control" />
-            <span asp-validation-for="Kirjeldus" class="text-danger"></span>
-        </div>
+    <div class="mb-3">
+        <label asp-for="Kirjeldus" class="form-label"></label>
+        <textarea asp-for="Kirjeldus" class="form-control"></textarea>
+        <span asp-validation-for="Kirjeldus" class="text-danger"></span>
+    </div>
 
-        @*create only later add update checkforid*@
-        <input type="submit" value="Loo keelekursus" class="btn btn-success mt-3" />
-    </form>
-</div>
+    <button type="submit" class="btn btn-success">Lisa</button>
+    <a asp-action="Index" class="btn btn-primary">Tagasi</a>
+</form>

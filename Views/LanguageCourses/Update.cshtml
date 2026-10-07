@@ -1,8 +1,13 @@
 ﻿@model KeelteKool2.Models.LanguageCourses.LanguageCourseViewModel
+@{
+    ViewBag.Title = "Muuda keelekursust";
+}
 
 <h1>Muuda keelekursust</h1>
 
-<form asp-action="Update" method="post">
+<form asp-action="Update" asp-controller="LanguageCourses" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
     <input asp-for="Id" type="hidden" />
 
     <div class="mb-3">
@@ -20,25 +25,15 @@
     <div class="mb-3">
         <label asp-for="Tase" class="form-label"></label>
         <input asp-for="Tase" class="form-control" />
+        <span asp-validation-for="Tase" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
         <label asp-for="Kirjeldus" class="form-label"></label>
         <textarea asp-for="Kirjeldus" class="form-control"></textarea>
+        <span asp-validation-for="Kirjeldus" class="text-danger"></span>
     </div>
 
-
-    @if (Model.Id.HasValue)
-    {
-        <input asp-action="update" asp-controller="LanguageCourses" type="submit" value="Loo Keelekursus" class='btn-success' />
-    }
-    else
-    {
-        <input asp-action="create" asp-controller="LanguageCourses" type="submit" value="Loo Keelekursus" class='btn-success' />
-    }
-
-    <a asp-action="create" asp-controller="LanguageCourses" class="btn btn-secondary">Tagasi</a>
-
-
+    <button type="submit" class="btn btn-warning">Salvesta</button>
     <a asp-action="Index" class="btn btn-primary">Tagasi</a>
 </form>
