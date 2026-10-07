@@ -162,7 +162,6 @@ namespace KeelteKool2.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmation(Guid id)
         {
             var result = await _languageCoursesServices.Delete(id);

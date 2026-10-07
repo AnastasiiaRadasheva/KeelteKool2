@@ -2,6 +2,7 @@
 using KeeltekoolV2.Core.DTO;
 using KeeltekoolV2.Core.ServiceInterface;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -115,7 +116,29 @@ namespace KeeltekoolV2.UnitTesting
             return created;
         }
       
-      
+      public async Task Should_DeleteDataFromDB_WhenIdIsValid()
+        {
+            //ülesseade
+            //lisame andmebaasi kursuse
+            Core.Domain.LanguageCourse createdCourse = await AddObjectToDB();
+            //tegevus
+            var result = await Svc<ILanguageCoursesServices>().Delete(createdCourse.Id);
+            var deleted = await Svc<ILanguageCoursesServices>().DetailsAsync(createdCourse.Id);
+
+            //kontroll
+
+            Assert.Null(deleted);
+            Assert.NotNull(result);
+            //kontrollime et andmebaasist ei leitud objekti
+
+            Assert.Equal(createdCourse.Id, result.Id);
+            Assert.Equal(createdCourse.Nimetus, result.Nimetus);
+            Assert.Equal(createdCourse.Keel, result.Keel);
+            Assert.Equal(createdCourse.Tase, result.Tase);
+            Assert.Equal(createdCourse.Kirjeldus, result.Kirjeldus);
+
+            Assert.NotEqual(createdCourse, result);
+        }
 
         private LanguageCourseDTO MockLanguageCourseDtoData()
         {
