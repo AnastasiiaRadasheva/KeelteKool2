@@ -29,7 +29,9 @@
                 <td>@course.Nimetus</td>
                 <td>@course.Keel</td>
                 <td>
-                    TODO: add details update and delete funk from controller
+                    <a asp-action="Details" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-secondary">Andmed</a>
+                    <a asp-action="Update" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-warning">Muuda</a>
+                    <a asp-action="Delete" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-danger">Kustuta</a>
                 </td>
             </tr>
             rownumber++;

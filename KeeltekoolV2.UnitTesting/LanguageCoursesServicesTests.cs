@@ -1,5 +1,7 @@
-﻿using KeeltekoolV2.Core.DTO;
+﻿using KeeltekoolV2.Core.Domain;
+using KeeltekoolV2.Core.DTO;
 using KeeltekoolV2.Core.ServiceInterface;
+using Microsoft.AspNetCore.Http.HttpResults;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -75,6 +77,46 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Equal(result, createdCourse);
            
         }
+
+        [Fact]
+      
+        public async Task Should_UpdateWithNewData_WhenDataIsDifferentFromDB()
+        {
+            //ülesseade
+            //lisame andmebaasi kursuse
+            Core.Domain.LanguageCourse createdCourse = await AddObjectToDB();
+
+            LanguageCourseDTO updatedCourse = new LanguageCourseDTO();
+            updatedCourse.Id = createdCourse.Id;
+            updatedCourse.Keel = createdCourse.Keel;
+            updatedCourse.Tase = createdCourse.Tase;
+            updatedCourse.Kirjeldus = createdCourse.Kirjeldus;
+            updatedCourse.Nimetus = "Uusnimetus";
+            updatedCourse.ModifiedAt = DateTime.UtcNow;
+
+            //tegevus
+            await Svc<ILanguageCoursesServices>().Update(updatedCourse);
+
+            //kontroll
+            var result = await Svc<ILanguageCoursesServices>().DetailsAsync(createdCourse.Id);
+
+            Assert.NotNull(result);
+            Assert.Equal(updatedCourse.Id, result.Id);
+            Assert.Equal(updatedCourse.Nimetus, result.Nimetus);
+            Assert.Equal(updatedCourse.Keel, result.Keel);
+            Assert.Equal(updatedCourse.Tase, result.Tase);
+            Assert.Equal(updatedCourse.Kirjeldus, result.Kirjeldus);
+        }
+
+        private async Task<LanguageCourse> AddObjectToDB()
+        {
+            LanguageCourseDTO dto = MockLanguageCourseDtoData();
+            var created = await Svc<ILanguageCoursesServices>().Create(dto);
+            return created;
+        }
+      
+      
+
         private LanguageCourseDTO MockLanguageCourseDtoData()
         {
             return new LanguageCourseDTO

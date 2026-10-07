@@ -1,0 +1,32 @@
+﻿@model KeelteKool2.Models.LanguageCourses.LanguageCourseViewModel
+
+<h1>Muuda keelekursust</h1>
+
+<form asp-action="Update" method="post">
+    <input asp-for="Id" type="hidden" />
+
+    <div class="mb-3">
+        <label asp-for="Nimetus" class="form-label"></label>
+        <input asp-for="Nimetus" class="form-control" />
+        <span asp-validation-for="Nimetus" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Keel" class="form-label"></label>
+        <input asp-for="Keel" class="form-control" />
+        <span asp-validation-for="Keel" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Tase" class="form-label"></label>
+        <input asp-for="Tase" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Kirjeldus" class="form-label"></label>
+        <textarea asp-for="Kirjeldus" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-warning">Salvesta</button>
+    <a asp-action="Index" class="btn btn-primary">Tagasi</a>
+</form>

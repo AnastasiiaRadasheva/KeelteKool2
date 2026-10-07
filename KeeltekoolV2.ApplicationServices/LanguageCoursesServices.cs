@@ -48,21 +48,44 @@ namespace KeeltekoolV2.ApplicationServices
             return domain;
         }
 
-        public async Task<LanguageCourse> Update(LanguageCourseDTO dto)
+        public async Task<LanguageCourse?> Update(LanguageCourseDTO dto)
         {
-            return null;
+    
+
+            var domain = await _context.LanguageCourses
+                .FirstOrDefaultAsync(x => x.Id == dto.Id);
+            domain.Nimetus = dto.Nimetus;
+            domain.Keel = dto.Keel;
+            domain.Tase = dto.Tase ?? "";
+            domain.Kirjeldus = dto.Kirjeldus ?? "";
+            domain.ModifiedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return domain;
         }
 
-        public async Task<LanguageCourse> DetailsAsync(Guid id)
+        public async Task<LanguageCourse?> DetailsAsync(Guid id)
         {
-            var result = await _context.LanguageCourses
+            return await _context.LanguageCourses
                 .FirstOrDefaultAsync(x => x.Id == id);
-            return result;
         }
 
-        public async Task<LanguageCourse> Delete(Guid id)
+        public async Task<LanguageCourse?> Delete(Guid id)
         {
-            return null;
+            var domain = await _context.LanguageCourses
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (domain == null)
+            {
+                return null;
+            }
+
+            _context.LanguageCourses.Remove(domain);
+            await _context.SaveChangesAsync();
+
+            return domain;
         }
+       
     }
 }
