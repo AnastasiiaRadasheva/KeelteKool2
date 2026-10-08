@@ -20,7 +20,7 @@ namespace KeeltekoolV2.UnitTesting
 
         public virtual void SetupServices(IServiceCollection services)
         {
-            services.AddScoped<ILanguageCoursesServices, LanguageCoursesServices>();
+            services.AddScoped<ILanguageServices, LanguageCoursesServices>();
         
 
             services.AddDbContext<KeeltekoolV2Context>(x =>

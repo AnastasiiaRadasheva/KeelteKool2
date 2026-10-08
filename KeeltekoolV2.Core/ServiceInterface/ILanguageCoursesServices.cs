@@ -9,7 +9,7 @@ using KeeltekoolV2.Core.DTO;
 
 namespace KeeltekoolV2.Core.ServiceInterface
 {
-    public interface ILanguageCoursesServices
+    public interface ILanguageServices
     {
         Task<LanguageCourse?> Create(LanguageCourseDTO dto);
         Task<LanguageCourse?> Update(LanguageCourseDTO dto);

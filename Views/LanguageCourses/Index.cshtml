@@ -19,6 +19,7 @@
             <th scope="col">Nimetus</th>
             <th scope="col">Õpetatav keel</th>
             <th scope="col">Tase</th>
+            <th scope="col">Kirjeldus</th>
             <th scope="col">Tegevused</th>
         </tr>
     </thead>
@@ -30,6 +31,7 @@
                 <td>@course.Nimetus</td>
                 <td>@course.Keel</td>
                 <td>@course.Tase</td>
+                <td>@course.Kirjeldus</td>
                 <td>
                     <a asp-action="Details" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-secondary">Andmed</a>
                     <a asp-action="Update" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-warning">Muuda</a>

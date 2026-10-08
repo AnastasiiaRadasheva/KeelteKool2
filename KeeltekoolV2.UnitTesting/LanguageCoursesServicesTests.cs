@@ -25,7 +25,7 @@ namespace KeeltekoolV2.UnitTesting
             LanguageCourseDTO newCourseDTO = MockLanguageCourseDtoData();
 
             //tegevus
-            var result = await Svc<ILanguageCoursesServices>().Create(newCourseDTO);
+            var result = await Svc<ILanguageServices>().Create(newCourseDTO);
 
             //kontroll
             Assert.NotNull(result);                                  //teenus tagastas objekti
@@ -45,7 +45,7 @@ namespace KeeltekoolV2.UnitTesting
             newCourseDTO.Keel = "";
 
             //tegevus
-            var result = await Svc<ILanguageCoursesServices>().Create(newCourseDTO);
+            var result = await Svc<ILanguageServices>().Create(newCourseDTO);
 
             //kontroll
             Assert.Null(result); //kontrollime et teenus lükkas objekti lisamise tagasi
@@ -61,11 +61,11 @@ namespace KeeltekoolV2.UnitTesting
             //tekitame uue objekti
             LanguageCourseDTO course = MockLanguageCourseDtoData();
             //lisame andmebaasi
-            var createdCourse = await Svc<ILanguageCoursesServices>().Create(course);
+            var createdCourse = await Svc<ILanguageServices>().Create(course);
 
             //tegevus
             //kasutame objektis asuvat id et see objekt tagasi lugeda andmebaasist DetailsAsync meetodiga
-            var result = await Svc<ILanguageCoursesServices>().DetailsAsync(createdCourse.Id);
+            var result = await Svc<ILanguageServices>().DetailsAsync(createdCourse.Id);
 
             //kontroll
             //kontrollime et tagastati midagi
@@ -96,10 +96,10 @@ namespace KeeltekoolV2.UnitTesting
             updatedCourse.ModifiedAt = DateTime.UtcNow;
 
             //tegevus
-            await Svc<ILanguageCoursesServices>().Update(updatedCourse);
+            await Svc<ILanguageServices>().Update(updatedCourse);
 
             //kontroll
-            var result = await Svc<ILanguageCoursesServices>().DetailsAsync(createdCourse.Id);
+            var result = await Svc<ILanguageServices>().DetailsAsync(createdCourse.Id);
 
             Assert.NotNull(result);
             Assert.Equal(updatedCourse.Id, result.Id);
@@ -112,7 +112,7 @@ namespace KeeltekoolV2.UnitTesting
         private async Task<LanguageCourse> AddObjectToDB()
         {
             LanguageCourseDTO dto = MockLanguageCourseDtoData();
-            var created = await Svc<ILanguageCoursesServices>().Create(dto);
+            var created = await Svc<ILanguageServices>().Create(dto);
             return created;
         }
       
@@ -122,8 +122,8 @@ namespace KeeltekoolV2.UnitTesting
             //lisame andmebaasi kursuse
             Core.Domain.LanguageCourse createdCourse = await AddObjectToDB();
             //tegevus
-            var result = await Svc<ILanguageCoursesServices>().Delete(createdCourse.Id);
-            var deleted = await Svc<ILanguageCoursesServices>().DetailsAsync(createdCourse.Id);
+            var result = await Svc<ILanguageServices>().Delete(createdCourse.Id);
+            var deleted = await Svc<ILanguageServices>().DetailsAsync(createdCourse.Id);
 
             //kontroll
 
