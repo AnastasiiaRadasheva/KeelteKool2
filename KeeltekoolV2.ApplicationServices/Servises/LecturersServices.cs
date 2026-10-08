@@ -4,6 +4,7 @@ using KeeltekoolV2.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace KeeltekoolV2.ApplicationServices.Servises
@@ -19,9 +20,15 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Lecturer> Create(LectureDTO dto)
         {
+            if (dto==null)
+            {
+                return null;
+            }
             Lecturer lecturer = new Lecturer();
 
             lecturer.Id = Guid.NewGuid();
+
+
             lecturer.FirstName = dto.FirstName;
             lecturer.LastName = dto.LastName;
             lecturer.Qualifications = dto.Qualifications;

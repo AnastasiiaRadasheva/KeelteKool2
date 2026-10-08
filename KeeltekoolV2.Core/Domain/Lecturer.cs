@@ -16,7 +16,7 @@ namespace KeeltekoolV2.Core.Domain
 
 
         public string Qualifications { get; set; }
-        public string UserID { get; set; }
+        public string? UserID { get; set; }
         public IEnumerable<FileToDatabaseDTO> Image { get; set; } = new List<FileToDatabaseDTO>();
 
         //   public ICollection<Subject> LanguageSubject { get; set; }
