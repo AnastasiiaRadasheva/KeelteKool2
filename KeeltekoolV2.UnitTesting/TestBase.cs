@@ -5,6 +5,8 @@ using KeeltekoolV2.UnitTesting.Macros;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+
+using KeeltekoolV2.ApplicationServices.Servises;
 namespace KeeltekoolV2.UnitTesting
 {
     public abstract class TestBase : IDisposable
@@ -21,7 +23,8 @@ namespace KeeltekoolV2.UnitTesting
         public virtual void SetupServices(IServiceCollection services)
         {
             services.AddScoped<ILanguageServices, LanguageCoursesServices>();
-        
+            services.AddScoped<ILanguageServices, LanguageCoursesServices>();
+            services.AddScoped<ILecturersServices, LecturersServices>();
 
             services.AddDbContext<KeeltekoolV2Context>(x =>
             {

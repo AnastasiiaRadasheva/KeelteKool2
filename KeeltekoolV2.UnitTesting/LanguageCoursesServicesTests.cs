@@ -129,7 +129,7 @@ namespace KeeltekoolV2.UnitTesting
 
             Assert.Null(deleted);
             Assert.NotNull(result);
-            //kontrollime et andmebaasist ei leitud objekti
+            
 
             Assert.Equal(createdCourse.Id, result.Id);
             Assert.Equal(createdCourse.Nimetus, result.Nimetus);
