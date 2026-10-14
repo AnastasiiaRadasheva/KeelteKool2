@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KeeltekoolV2.ApplicationServices
 {
-    public class LanguageCoursesServices : ILanguageCoursesServices
+    public class LanguageCoursesServices : ILanguageServices
     {
         private readonly KeeltekoolV2Context _context;
 

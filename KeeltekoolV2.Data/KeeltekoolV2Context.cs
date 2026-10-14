@@ -15,5 +15,9 @@ namespace KeeltekoolV2.Data
         }
             //set tables here
             public DbSet<LanguageCourse> LanguageCourses { get; set; }
-        }
+
+        public DbSet<Lecturer> Lecturer { get; set; }
+
+        public DbSet<FileToDatabase> Files { get; set; }
+    }
     }

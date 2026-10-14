@@ -1,4 +1,5 @@
 using KeeltekoolV2.ApplicationServices;
+using KeeltekoolV2.ApplicationServices.Servises;
 using KeeltekoolV2.Core.Domain;
 using KeeltekoolV2.Core.ServiceInterface;
 using KeeltekoolV2.Data;
@@ -18,7 +19,11 @@ namespace KeelteKool2
 
             //services
             builder.Services.AddScoped<IEmailingServices, EmailingServices>();
-            builder.Services.AddScoped<ILanguageCoursesServices, LanguageCoursesServices>();
+            builder.Services.AddScoped<ILanguageServices, LanguageCoursesServices>();
+
+            builder.Services.AddScoped<IFileServices, FilesServices>();
+
+            builder.Services.AddScoped<ILecturersServices, LecturersServices>();
             //apiclients
 
             //dbcontext

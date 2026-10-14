@@ -9,9 +9,9 @@ namespace KeelteKool2.Controllers
     public class LanguageCoursesController : Controller
     {
         private readonly KeeltekoolV2Context _context;
-        private readonly ILanguageCoursesServices _languageCoursesServices;
+        private readonly ILanguageServices _languageCoursesServices;
 
-        public LanguageCoursesController(KeeltekoolV2Context context, ILanguageCoursesServices languageCoursesServices)
+        public LanguageCoursesController(KeeltekoolV2Context context, ILanguageServices languageCoursesServices)
         {
             _context = context;
             _languageCoursesServices = languageCoursesServices;
@@ -163,14 +163,16 @@ namespace KeelteKool2.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        
         public async Task<IActionResult> DeleteConfirmation(Guid id)
         {
             var result = await _languageCoursesServices.Delete(id);
             if (result == null)
             {
-                return RedirectToAction("Error", "Home");
+                return NotFound();
             }
             return RedirectToAction(nameof(Index));
+
         }
     }
 }

@@ -108,24 +108,40 @@ namespace KeelteKoolV2SeleniumTesting
             {
                 driver.Quit();
                 Assert.Fail("Kursust 'Automaattestimise kursus' ei leitud Index tabelist.");
+                //}
+                //DataClear_CreateUpdate(driver);
+                //find data
+                string details_id = driver.FindElement(By.Id("DD_LanguageCourseGuid")).Text;
+                string details_name = driver.FindElement(By.Id("DD_LanguageCourseNimetus")).Text;
+                string details_keel = driver.FindElement(By.Id("DD_LanguageCourseKeel")).Text;
+                string details_kirjeldus = driver.FindElement(By.Id("DD_LanguageCourseKirjeldus")).Text;
+                string details_tase = driver.FindElement(By.Id("DD_LanguageCourseTase")).Text;
+                driver.Quit();
+
+                //assertime
+                Assert.NotNull(details_id);
+
+                Assert.True(Guid.TryParse(details_id, out _));
+                Assert.Equal("Automaattestimise kursus", details_name);
+                Assert.Equal("C# + Selenium & xUnit", details_keel);
+                Assert.Equal("Kursusel õpime, mis on automaattestimine ...", details_kirjeldus);
+                Assert.Equal("3", details_tase);
             }
+        }
 
-            //find data
-            string details_id = driver.FindElement(By.Id("DD_LanguageCourseGuid")).Text;
-            string details_name = driver.FindElement(By.Id("DD_LanguageCourseNimetus")).Text;
-            string details_keel = driver.FindElement(By.Id("DD_LanguageCourseKeel")).Text;
-            string details_kirjeldus = driver.FindElement(By.Id("DD_LanguageCourseKirjeldus")).Text;
-            string details_tase = driver.FindElement(By.Id("DD_LanguageCourseTase")).Text;
-            driver.Quit();
+        private void DataClear_CreateUpdate(IWebDriver driver)
+        {
+          
 
-            //assertime
-           Assert.NotNull(details_id);
+            IWebElement createEntryNimetus = driver.FindElement(By.Id("CU_LanguageCourse_Nimetus"));
+            createEntryNimetus.Clear();
+            IWebElement createEntryKeel = driver.FindElement(By.Id("CU_LanguageCourse_Keel"));
+            createEntryKeel.Clear();
+            IWebElement createEntryTase = driver.FindElement(By.Id("CU_LanguageCourse_Tase"));
+            createEntryTase.Clear();
+            IWebElement createEntryKirjeldus = driver.FindElement(By.Id("CU_LanguageCourse_Kirjeldus"));
+            createEntryKirjeldus.Clear();
 
-            Assert.True(Guid.TryParse(details_id, out _));
-            Assert.Equal("Automaattestimise kursus", details_name);
-            Assert.Equal("C# + Selenium & xUnit", details_keel);
-            Assert.Equal("Kursusel õpime, mis on automaattestimine ...", details_kirjeldus);
-            Assert.Equal("3", details_tase);
         }
 
         [Fact]
@@ -177,4 +193,6 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.Equal("3", updated_tase);
         }
     }
+    //delete
+
 }
