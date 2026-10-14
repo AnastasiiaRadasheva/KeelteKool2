@@ -16,12 +16,7 @@ namespace KeelteKoolV2SeleniumTesting
             try
             {
                 // Act
-                driver.FindElement(By.Id("IndexCreateNewLanguageCourse_BTN")).Click();
-
-                driver.FindElement(By.Id("CU_LanguageCourse_Nimetus")).SendKeys("Automaattestimise kursus");
-                driver.FindElement(By.Id("CU_LanguageCourse_Keel")).SendKeys("C# + Selenium & xUnit");
-                driver.FindElement(By.Id("CU_LanguageCourse_Tase")).SendKeys("3");
-                driver.FindElement(By.Id("CU_LanguageCourse_Kirjeldus")).SendKeys("Kursusel õpime, mis on automaattestimine ...");
+                DataEntry_LanguageCourse(driver);
                 driver.FindElement(By.Id("CU_Create_BTN")).Click();
 
                 // otsime just selle rea, kus on meie kursus
@@ -48,6 +43,39 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Url = BaseUrl;
             driver.FindElement(By.LinkText("Keelekursused")).Click(); 
             return driver;
+        }
+
+        private static void DataEntry_LanguageCourse(IWebDriver driver, bool isOneOrTwo = false)
+        {
+            if (!isOneOrTwo)
+            {
+           IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewLanguageCourse_BTN"));
+           indexCreateButton.Click();
+            IWebElement createEntryNimetus = driver.FindElement(By.Id("CU_LanguageCourse_Nimetus"));
+            createEntryNimetus.SendKeys("Automaattestimise kursus");
+            IWebElement createEntryKeel = driver.FindElement(By.Id("CU_LanguageCourse_Keel"));
+            createEntryKeel.SendKeys("C# + Selenium & xUnit");
+            IWebElement createEntryTase = driver.FindElement(By.Id("CU_LanguageCourse_Tase"));
+            createEntryTase.SendKeys("3");
+            IWebElement createEntryKirjeldus = driver.FindElement(By.Id("CU_LanguageCourse_Kirjeldus"));
+            createEntryKirjeldus.SendKeys("Kursusel õpime, mis on automaattestimine ...");
+            }
+            else
+            {
+                IWebElement createEntryNimetus = driver.FindElement(By.Id("CU_LanguageCourse_Nimetus"));
+                createEntryNimetus.Clear();
+                createEntryNimetus.SendKeys("Manuaaltestimise kursus");
+                IWebElement createEntryKeel = driver.FindElement(By.Id("CU_LanguageCourse_Keel"));
+                createEntryKeel.Clear();
+                createEntryKeel.SendKeys("Mantis, Excel");
+                IWebElement createEntryTase = driver.FindElement(By.Id("CU_LanguageCourse_Tase"));
+                createEntryTase.Clear();
+                createEntryTase.SendKeys("3");
+                IWebElement createEntryKirjeldus = driver.FindElement(By.Id("CU_LanguageCourse_Kirjeldus"));
+                createEntryKirjeldus.Clear();
+                createEntryKirjeldus.SendKeys("Kursusel opime mis on manuaaltestimine, kuidas erineb automaattestimisest ning " +
+                "mis dokumentatsioon manuaaltestimise juures tahtis on ning kuidas neid kirjutada.");
+            }
         }
 
         [Fact]
@@ -91,11 +119,62 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Quit();
 
             //assertime
+           Assert.NotNull(details_id);
+
             Assert.True(Guid.TryParse(details_id, out _));
             Assert.Equal("Automaattestimise kursus", details_name);
             Assert.Equal("C# + Selenium & xUnit", details_keel);
             Assert.Equal("Kursusel õpime, mis on automaattestimine ...", details_kirjeldus);
             Assert.Equal("3", details_tase);
+        }
+
+        [Fact]
+        public void Should_UpdateDetailsOfLanguageCourse_WithNewData()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0); // eemaldame päise rea
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableCourseNimetus")).Text;
+                var keelElement = row.FindElement(By.Id("IndexTableCourseKeel")).Text;
+                if ((nameElement == "Automaattestimise kursus") && (keelElement == "C# + Selenium & xUnit"))
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableCourseActions"))
+                        .FindElement(By.Id("IndexTableCourseUpdate_BTN"));
+                    clickAction.Click(); // avame Update vaate
+                    break;
+                }
+            }
+
+            if (!isObjectFound)
+            {
+                driver.Quit();
+                Assert.Fail("Kursust 'Automaattestimise kursus' ei leitud Index tabelist.");
+            }
+
+            DataEntry_LanguageCourse(driver, true); // kirjutame uued andmed
+            IWebElement updateButton = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateButton.Click(); // salvestame, tagasi Index lehele
+
+            /* kontroll */
+            IWebElement updatedRow = driver.FindElement(By.XPath("//tr[td[text()='Manuaaltestimise kursus']]"));
+            string updated_name = updatedRow.FindElement(By.Id("IndexTableCourseNimetus")).Text;
+            string updated_keel = updatedRow.FindElement(By.Id("IndexTableCourseKeel")).Text;
+            string updated_tase = updatedRow.FindElement(By.Id("IndexTableCourseTase")).Text;
+            driver.Quit();
+
+            //assertime
+            Assert.Equal("Manuaaltestimise kursus", updated_name);
+            Assert.Equal("Mantis, Excel", updated_keel);
+            Assert.Equal("3", updated_tase);
         }
     }
 }
