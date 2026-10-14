@@ -49,7 +49,7 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.Equal("Automattestimise kursus", LanguageCourseNameData);
             Assert.Equal("c# + selenium xUnit", LanguageCourseKeelData);
             Assert.Equal("3", LanguageCourseTaseData);
-            
+            Assert.True(("Automattestimise kursus"== LanguageCourseNameData) && ("c# + selenium xUnit" == LanguageCourseKeelData) && ("3" == LanguageCourseTaseData));
         }
     }
 }
