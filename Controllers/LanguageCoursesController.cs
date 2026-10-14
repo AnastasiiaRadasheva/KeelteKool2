@@ -88,7 +88,7 @@ namespace KeelteKool2.Controllers
                 Tase = languageCourse.Tase,
                 Kirjeldus = languageCourse.Kirjeldus
             };
-            return View(vm);
+            return View("DetailsDelete", vm);
         }
 
         [HttpGet]
@@ -158,7 +158,8 @@ namespace KeelteKool2.Controllers
                 Tase = languageCourse.Tase,
                 Kirjeldus = languageCourse.Kirjeldus
             };
-            return View(vm);
+            ViewData["IsDelete"] = true;
+            return View("DetailsDelete", vm);
         }
 
         [HttpPost, ActionName("Delete")]

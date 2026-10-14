@@ -1,0 +1,38 @@
+@model KeelteKool2.Models.LanguageCourses.LanguageCourseViewModel
+@{
+    bool isDelete = ViewData["IsDelete"] as bool? ?? false;
+    ViewBag.Title = isDelete ? "Kustuta keelekursus" : "Keelekursus";
+}
+
+<h4>@(isDelete ? "Kas soovid selle kursuse kustutada?" : "Keelekursus")</h4>
+<hr />
+<dl class="row">
+    <dt class="col-sm-2">Id</dt>
+    <dd class="col-sm-10"><span id="DD_LanguageCourseGuid">@Model.Id</span></dd>
+
+    <dt class="col-sm-2">Nimetus</dt>
+    <dd class="col-sm-10"><span id="DD_LanguageCourseNimetus">@Model.Nimetus</span></dd>
+
+    <dt class="col-sm-2">Keel</dt>
+    <dd class="col-sm-10"><span id="DD_LanguageCourseKeel">@Model.Keel</span></dd>
+
+    <dt class="col-sm-2">Tase</dt>
+    <dd class="col-sm-10"><span id="DD_LanguageCourseTase">@Model.Tase</span></dd>
+
+    <dt class="col-sm-2">Kirjeldus</dt>
+    <dd class="col-sm-10"><span id="DD_LanguageCourseKirjeldus">@Model.Kirjeldus</span></dd>
+</dl>
+
+@if (isDelete)
+{
+    <form asp-action="Delete" asp-controller="LanguageCourses" method="post">
+        <input asp-for="Id" type="hidden" />
+        <input id="DD_Delete_BTN" type="submit" value="Kustuta" class="btn btn-danger" />
+        <a id="DD_Back_BTN" asp-action="Index" asp-controller="LanguageCourses" class="btn btn-primary">Tagasi</a>
+    </form>
+}
+else
+{
+    <a id="DD_Update_BTN" asp-action="Update" asp-controller="LanguageCourses" asp-route-id="@Model.Id" class="btn btn-warning">Muuda</a>
+    <a id="DD_Back_BTN" asp-action="Index" asp-controller="LanguageCourses" class="btn btn-primary">Tagasi</a>
+}
