@@ -4,4 +4,5 @@
   <Project Path="KeeltekoolV2.Core/KeeltekoolV2.Core.csproj" />
   <Project Path="KeeltekoolV2.Data/KeeltekoolV2.Data.csproj" />
   <Project Path="KeeltekoolV2.UnitTesting/KeeltekoolV2.UnitTesting.csproj" />
+  <Project Path="KeelteKoolV2SeklenuimTest/KeelteKoolV2SeleniumTesting.csproj" Id="901939d6-19b4-4df2-9496-e82869df3d7a" />
 </Solution>

@@ -1,4 +1,4 @@
-﻿using KeeltekoolV2.Core.DTO;
+using KeeltekoolV2.Core.DTO;
 using KeeltekoolV2.Core.ServiceInterface;
 using KeeltekoolV2.Data;
 using KeelteKool2.Models.LanguageCourses;
@@ -37,7 +37,7 @@ namespace KeelteKool2.Controllers
         public IActionResult Create()
         {
             LanguageCourseViewModel vm = new();
-            return View(vm);
+            return View("CreateUpdate", vm);
         }
 
         [HttpPost]
@@ -50,7 +50,7 @@ namespace KeelteKool2.Controllers
             }
             if (!ModelState.IsValid)
             {
-                return View(vm);
+                return View("CreateUpdate", vm);
             }
             var dto = new LanguageCourseDTO()
             {
@@ -111,7 +111,7 @@ namespace KeelteKool2.Controllers
                 Tase = languageCourse.Tase,
                 Kirjeldus = languageCourse.Kirjeldus
             };
-            return View(vm);
+            return View("CreateUpdate", vm);
         }
 
         [HttpPost]
@@ -120,7 +120,7 @@ namespace KeelteKool2.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View(vm);
+                return View("CreateUpdate", vm);
             }
             var dto = new LanguageCourseDTO()
             {

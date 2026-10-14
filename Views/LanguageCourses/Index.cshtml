@@ -5,14 +5,14 @@
 }
 @*Later check for role of the user, hide this button if not admin or teacher*@
 <div>
-    <a asp-action="Create" asp-controller="LanguageCourses" class="btn btn-dark">Lisa uus keelekursus</a>
+    <a id="IndexCreateNewLanguageCourse_BTN" asp-action="Create" asp-controller="LanguageCourses" class="btn btn-dark">Lisa uus keelekursus</a>
 </div>
 
 <div class="h1">
     Keelekursused
 </div>
 
-<table class="table table-hover">
+<table id="IndexTable" class="table table-hover">
     <thead>
         <tr>
             <th scope="col">Nr</th>
@@ -27,13 +27,13 @@
         {
             <tr>
                 <td>@rownumber</td>
-                <td>@course.Nimetus</td>
-                <td>@course.Keel</td>
-                <td>@course.Tase</td>
-                <td>
-                    <a asp-action="Details" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-secondary">Andmed</a>
-                    <a asp-action="Update" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-warning">Muuda</a>
-                    <a asp-action="Delete" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-danger">Kustuta</a>
+                <td id="IndexTableCourseNimetus">@course.Nimetus</td>
+                <td id="IndexTableCourseKeel">@course.Keel</td>
+                <td id="IndexTableCourseTase">@course.Tase</td>
+                    <td id="IndexTableCourseActions">
+                    <a id="IndexTableCourseDetails" asp-action="Details" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-secondary">Andmed</a>
+                    <a id="IndexTableCourseUpdate" asp-action="Update" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-warning">Muuda</a>
+                    <a id="IndexTableCourseDelete" asp-action="Delete" asp-controller="LanguageCourses" asp-route-id="@course.Id" class="btn btn-danger">Kustuta</a>
                 </td>
             </tr>
             rownumber++;
