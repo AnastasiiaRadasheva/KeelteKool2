@@ -144,6 +144,64 @@ namespace KeelteKoolV2SeleniumTesting
 
         }
 
+
+        //Delete test
+        [Fact]
+        public void Should_DeleteLanguageCourse_FromDeleteView()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableCourseNimetus")).Text;
+                var keelElement = row.FindElement(By.Id("IndexTableCourseKeel")).Text;
+                if ((nameElement == "Manuaaltestimise kursus") && (keelElement == "Mantis, Excel"))
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableCourseActions"))
+                        .FindElement(By.Id("IndexTableCourseDetails_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            IWebElement clickDelete = driver.FindElement(By.Id("DeleteDelete_BTN"));
+            clickDelete.Click();
+
+            //kontroll
+            isObjectFound = false;
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableCourseNimetus")).Text;
+                var keelElement = row.FindElement(By.Id("IndexTableCourseKeel")).Text;
+                if ((nameElement == "Manuaaltestimise kursus") && (keelElement == "Mantis, Excel"))
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableCourseActions"))
+                        .FindElement(By.Id("IndexTableCourseDetails_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Assert.False(isObjectFound);
+            Assert.True(!isObjectFound);
+        }
+
+
         [Fact]
         public void Should_UpdateDetailsOfLanguageCourse_WithNewData()
         {
