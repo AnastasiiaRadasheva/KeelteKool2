@@ -10,7 +10,7 @@ namespace KeelteKoolV2SeleniumTesting
     public class LanguageCourseFrontendTests
     {
 
-        public string thisRunGuid { get; set; }
+        public static string thisRunGuid { get; set; }
         //järjesti klass, mis omab omadusi mille järgi teste saab järjestada, väärtusi saab omistada ainult läbi konstruktori argumentide.
 
         public class OrderAttribute : Attribute
@@ -110,7 +110,10 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.True((uniqueId == languageCourseNameData) && ("C# + Selenium & xUnit" == languageCourseKeelData));
         }
 
-
+        /// <summary>
+        /// Ülesseade meetod mis tekitab navigeerib aadresile ja vajutab Keelltekursustele lingile
+        /// </summary>
+        /// <returns>tagastab testisiseselt kasuatatava draiveri</returns>
         private static IWebDriver TestSetup_NavigateToIndex()
         {
             IWebDriver driver = new ChromeDriver();
@@ -120,11 +123,20 @@ namespace KeelteKoolV2SeleniumTesting
             return driver;
         }
 
+
+        /// <summary>
+        /// Meetod mis testimise eesmärgi siseldab lehel andmeid on võimalik konfigureerida
+        /// </summary>
+        /// <param name="driver"></param>
+        /// <param name="isOneOrTwo"> Muutuja mis valib kare erineva andmekomplekti vahel</param>
+        /// <param name="updateName"> Muutuja mis ütleb kas nime on vaja muuta nimes hoitaksme testimiseks vajalikku unikaalset Guidi</param>
+        /// <returns>Tagastab lisatud Guidi stringi kujul miś pangi nimevälja kui on konfiguureritud nii</returns>
         private static string DataEntry_LanguageCourse(IWebDriver driver, bool isOneOrTwo= false, bool updateName = true)
         {
+
+            Guid generatedId = Guid.NewGuid();
             if (updateName)
             {
-                Guid generatedId = Guid.NewGuid();
                 IWebElement createEntryNimetus = driver.FindElement(By.Id("CU_LanguageCourse_Nimetus"));
                 createEntryNimetus.SendKeys(generatedId.ToString());
             }
@@ -205,7 +217,12 @@ namespace KeelteKoolV2SeleniumTesting
                 Assert.Equal("3", details_tase);
             }
         }
+        //uendamse test 
 
+
+        /// <summary>
+        /// Test which updates on object with new data
+        /// </summary>
         [Fact]
         [Order(6)]
         public void Should_NavigateToDetailsOfLanguageCourse_WithPreviouslyUniqueData()
@@ -261,6 +278,11 @@ namespace KeelteKoolV2SeleniumTesting
             }
         }
 
+
+        /// <summary>
+        /// puhustab andmeväkad meetodile kaasastus draiveri sessioonis
+        /// </summary>
+        /// <param name="driver">Hetkel käsitletav draiver</param>
         private void DataClear_CreateUpdate(IWebDriver driver)
         {
           
@@ -335,6 +357,10 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.True(!isObjectFound);
         }
         //Delete test
+
+        /// <summary>
+        /// test which removes a specific previosly added object
+        /// </summary>
         [Fact]
         [Order(8)]
         public void Should_DeleteLanguageCourse_FromDeleteUmiqueView()
@@ -439,7 +465,9 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.Equal("Mantis, Excel", updated_keel);
             Assert.Equal("3", updated_tase);
         }
-
+        /// <summary>
+        /// The whish updates a specific previously added object with new dataaaaa
+        /// </summary>
         [Fact]
         [Order(7)]
         public void Should_UpdateDetailsOfUniquleLanguageCourse_WithNewData()
@@ -498,6 +526,13 @@ namespace KeelteKoolV2SeleniumTesting
         
         }
 
+
+
+        /// <summary>
+        /// puhustab andmeväkad meetodile kaasastus draiveri sessioonis
+        /// välja arvatud mi,e väli
+        /// </summary>
+        /// <param name="driver">Hetkel käsitletav draiver</param>
         private void DataEntry_LanguageCourse_SaveName(IWebDriver driver)
         {
  
