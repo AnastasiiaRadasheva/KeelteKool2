@@ -64,12 +64,15 @@ namespace KeelteKoolV2SeleniumTesting
             /* tegevus */
             IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewLanguageCourse_BTN"));
             indexCreateButton.Click(); //click on create button
+            WaitForNewPage(indexCreateButton); //ootame, kuni uus leht laeb
 
             string uniqueId = DataEntry_LanguageCourse(driver); //enter data in view
             thisRunGuid = uniqueId;
 
             IWebElement CreateCreateButton = driver.FindElement(By.Id("CU_Create_BTN"));
             CreateCreateButton.Click(); //click create button in create view
+            WaitForNewPage(CreateCreateButton); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
 
             /* kontroll */
 
@@ -121,6 +124,7 @@ namespace KeelteKoolV2SeleniumTesting
                         .FindElement(By.Id("IndexTableCourseActions"))
                         .FindElement(By.Id("IndexTableCourseDetails_BTN"));
                     clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
                     break;
                 }
             }
@@ -133,6 +137,7 @@ namespace KeelteKoolV2SeleniumTesting
             string details_tase = driver.FindElement(By.Id("DD_LanguageCourseTase")).Text;
             IWebElement goBack = driver.FindElement(By.Id("DetailsBack_BTN"));
             goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
             Thread.Sleep(1000);
             driver.Quit();
 
@@ -176,6 +181,7 @@ namespace KeelteKoolV2SeleniumTesting
                         .FindElement(By.Id("IndexTableCourseActions"))
                         .FindElement(By.Id("IndexTableCourseUpdate_BTN"));
                     clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
                     break;
                 }
             }
@@ -184,8 +190,12 @@ namespace KeelteKoolV2SeleniumTesting
             DataEntry_LanguageCourse(driver, true, false);
             IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
             updateclick.Click();
+            WaitForNewPage(updateclick); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Update leht uuesti laeb
             IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
             goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
 
             /* kontrolle */
             //otsi objekt üles:
@@ -193,7 +203,6 @@ namespace KeelteKoolV2SeleniumTesting
             rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
             rowsOfTable.RemoveAt(0);
             isObjectFound = false;
-            Thread.Sleep(1000);
             foreach (var row in rowsOfTable)
             {
                 var nameElement = row.FindElement(By.Id("IndexTableCourseNimetus")).Text;
@@ -204,6 +213,7 @@ namespace KeelteKoolV2SeleniumTesting
                         .FindElement(By.Id("IndexTableCourseActions"))
                         .FindElement(By.Id("IndexTableCourseDetails_BTN"));
                     clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
                     break;
                 }
             }
@@ -252,12 +262,15 @@ namespace KeelteKoolV2SeleniumTesting
                         .FindElement(By.Id("IndexTableCourseActions"))
                         .FindElement(By.Id("IndexTableCourseDelete_BTN"));
                     clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
                     break;
                 }
             }
             Thread.Sleep(1000);
             IWebElement clickDelete = driver.FindElement(By.Id("DeleteDelete_BTN"));
             clickDelete.Click();
+            WaitForNewPage(clickDelete); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
 
             //kontroll
             isObjectFound = false;
@@ -363,7 +376,27 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Url = "http://localhost:5234/"; //navigeeritav aadress
             IWebElement navigateToLanguageCourse = driver.FindElement(By.LinkText("Keelekursused"));//otsime tesitava osa lingi
             navigateToLanguageCourse.Click(); //simuleeritud tegevus elemendiga, antud juhul klikk
+            WaitForNewPage(navigateToLanguageCourse); //ootame, kuni uus leht laeb
             return driver;
+        }
+        /// <summary>
+        /// Ootab, kuni pärast klikki vana leht kaob (element muutub "stale"), ehk uus leht on laadimas/laetud.
+        /// </summary>
+        /// <param name="clickedElement">Element millele just klikiti</param>
+        private static void WaitForNewPage(IWebElement clickedElement)
+        {
+            for (int i = 0; i < 100; i++) //max 10 sekundit
+            {
+                try
+                {
+                    _ = clickedElement.Enabled; //kui vana leht on veel alles, see õnnestub
+                    Thread.Sleep(100);
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return; //vana leht on kadunud
+                }
+            }
         }
     }
 }
