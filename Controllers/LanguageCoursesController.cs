@@ -27,6 +27,7 @@ namespace KeelteKool2.Controllers
                     Nimetus = x.Nimetus,
                     Keel = x.Keel,
                     Tase = x.Tase,
+                    Kirjeldus = x.Kirjeldus,
                 })
                 .Take(20)
                 .ToList();
@@ -36,22 +37,25 @@ namespace KeelteKool2.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            LanguageCourseViewModel vm = new();
+            LanguageCourseCreateUpdateViewModel vm = new();
             return View("CreateUpdate", vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(LanguageCourseViewModel vm)
+        public async Task<IActionResult> Create(LanguageCourseCreateUpdateViewModel vm)
         {
+            //kontrollime et vm ei oleks null
             if (vm == null)
             {
                 return RedirectToAction("Error", "Home");
             }
+            //kontrollime et vmi modelstate on õige
             if (!ModelState.IsValid)
             {
                 return View("CreateUpdate", vm);
             }
+            //teeme uue DTO-objekti ja asetame dtosse vmi andmed
             var dto = new LanguageCourseDTO()
             {
                 Id = vm.Id,
@@ -60,6 +64,7 @@ namespace KeelteKool2.Controllers
                 Tase = vm.Tase,
                 Kirjeldus = vm.Kirjeldus
             };
+            //teostatakse päring teenusele
             var result = await _languageCoursesServices.Create(dto);
             if (result == null)
             {
@@ -88,6 +93,9 @@ namespace KeelteKool2.Controllers
                 Tase = languageCourse.Tase,
                 Kirjeldus = languageCourse.Kirjeldus
             };
+
+            ViewData["ViewType"] = "details";
+
             return View("DetailsDelete", vm);
         }
 
@@ -98,25 +106,27 @@ namespace KeelteKool2.Controllers
             {
                 return NotFound();
             }
-            var languageCourse = await _languageCoursesServices.DetailsAsync(id);
-            if (languageCourse == null)
+            var courseToUpdate = await _languageCoursesServices.DetailsAsync(id);
+            if (courseToUpdate == null)
             {
                 return NotFound();
             }
-            var vm = new LanguageCourseViewModel()
+            var vm = new LanguageCourseCreateUpdateViewModel()
             {
-                Id = languageCourse.Id,
-                Nimetus = languageCourse.Nimetus,
-                Keel = languageCourse.Keel,
-                Tase = languageCourse.Tase,
-                Kirjeldus = languageCourse.Kirjeldus
+                Id = courseToUpdate.Id,
+                Nimetus = courseToUpdate.Nimetus,
+                Keel = courseToUpdate.Keel,
+                Tase = courseToUpdate.Tase,
+                Kirjeldus = courseToUpdate.Kirjeldus,
+                CreatedAt = courseToUpdate.CreatedAt,
+                ModifiedAt = courseToUpdate.ModifiedAt
             };
             return View("CreateUpdate", vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(LanguageCourseViewModel vm)
+        public async Task<IActionResult> Update(LanguageCourseCreateUpdateViewModel vm)
         {
             if (!ModelState.IsValid)
             {
@@ -128,24 +138,26 @@ namespace KeelteKool2.Controllers
                 Nimetus = vm.Nimetus,
                 Keel = vm.Keel,
                 Tase = vm.Tase,
-                Kirjeldus = vm.Kirjeldus
+                Kirjeldus = vm.Kirjeldus,
+                CreatedAt = vm.CreatedAt,
+                ModifiedAt = vm.ModifiedAt
             };
             var result = await _languageCoursesServices.Update(dto);
             if (result == null)
             {
-                return RedirectToAction("Error", "Home");
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Update), new { id = result.Id });
         }
 
         [HttpGet]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == Guid.Empty)
+            if (id == null || id == Guid.Empty)
             {
                 return NotFound();
             }
-            var languageCourse = await _languageCoursesServices.DetailsAsync(id);
+            var languageCourse = await _languageCoursesServices.DetailsAsync((Guid)id);
             if (languageCourse == null)
             {
                 return NotFound();
@@ -158,21 +170,22 @@ namespace KeelteKool2.Controllers
                 Tase = languageCourse.Tase,
                 Kirjeldus = languageCourse.Kirjeldus
             };
-            ViewData["IsDelete"] = true;
+
+            ViewData["ViewType"] = "delete";
+
             return View("DetailsDelete", vm);
         }
 
-        [HttpPost, ActionName("Delete")]
-        
-        public async Task<IActionResult> DeleteConfirmation(Guid id)
+        [HttpPost]
+        [ActionName("DeleteConfirmed")]
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var result = await _languageCoursesServices.Delete(id);
-            if (result == null)
+            var courseToDelete = await _languageCoursesServices.Delete(id);
+            if (courseToDelete == null)
             {
                 return NotFound();
             }
             return RedirectToAction(nameof(Index));
-
         }
     }
 }

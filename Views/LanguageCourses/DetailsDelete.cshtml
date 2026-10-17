@@ -1,38 +1,59 @@
 @model KeelteKool2.Models.LanguageCourses.LanguageCourseViewModel
-@{
-    bool isDelete = ViewData["IsDelete"] as bool? ?? false;
-    ViewBag.Title = isDelete ? "Kustuta keelekursus" : "Keelekursus";
-}
 
-<h4>@(isDelete ? "Kas soovid selle kursuse kustutada?" : "Keelekursus")</h4>
-<hr />
-<dl class="row">
-    <dt class="col-sm-2">Id</dt>
-    <dd class="col-sm-10"><span id="DD_LanguageCourseGuid">@Model.Id</span></dd>
-
-    <dt class="col-sm-2">Nimetus</dt>
-    <dd class="col-sm-10"><span id="DD_LanguageCourseNimetus">@Model.Nimetus</span></dd>
-
-    <dt class="col-sm-2">Keel</dt>
-    <dd class="col-sm-10"><span id="DD_LanguageCourseKeel">@Model.Keel</span></dd>
-
-    <dt class="col-sm-2">Tase</dt>
-    <dd class="col-sm-10"><span id="DD_LanguageCourseTase">@Model.Tase</span></dd>
-
-    <dt class="col-sm-2">Kirjeldus</dt>
-    <dd class="col-sm-10"><span id="DD_LanguageCourseKirjeldus">@Model.Kirjeldus</span></dd>
-</dl>
-
-@if (isDelete)
+@if (ViewBag.ViewType == "details")
 {
-    <form asp-action="Delete" asp-controller="LanguageCourses" method="post">
-        <input asp-for="Id" type="hidden" />
-        <input id="DD_Delete_BTN" type="submit" value="Kustuta" class="btn btn-danger" />
-        <a id="DD_Back_BTN" asp-action="Index" asp-controller="LanguageCourses" class="btn btn-primary">Tagasi</a>
-    </form>
+    <h1>Info</h1>
 }
 else
 {
-    <a id="DD_Update_BTN" asp-action="Update" asp-controller="LanguageCourses" asp-route-id="@Model.Id" class="btn btn-warning">Muuda</a>
-    <a id="DD_Back_BTN" asp-action="Index" asp-controller="LanguageCourses" class="btn btn-primary">Tagasi</a>
+    <h1>Kustuta</h1>
 }
+
+<div>
+    <h4>Keelekursus</h4>
+    <hr />
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="Id" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LanguageCourseGuid">@Html.DisplayFor(model => model.Id)</span>
+        </div>
+    </dl>
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="Nimetus" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LanguageCourseNimetus">@Html.DisplayFor(model => model.Nimetus)</span>
+        </div>
+    </dl>
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="Keel" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LanguageCourseKeel">@Html.DisplayFor(model => model.Keel)</span>
+        </div>
+    </dl>
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="Kirjeldus" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LanguageCourseKirjeldus">@Html.DisplayFor(model => model.Kirjeldus)</span>
+        </div>
+    </dl>
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="Tase" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LanguageCourseTase">@Html.DisplayFor(model => model.Tase)</span>
+        </div>
+    </dl>
+    @if (ViewBag.ViewType == "delete")
+    {
+        <form asp-action="DeleteConfirmed">
+            <input type="hidden" asp-for="Id" />
+            <input id="DeleteDelete_BTN" type="submit" value="Kustuta" class="btn btn-danger" />
+
+            <a id="DeleteCancel_BTN" asp-action="Index" asp-controller="LanguageCourses" class="btn btn-primary">Tühista</a>
+        </form>
+    }
+    else
+    {
+        <a id="DetailsUpdate_BTN" asp-action="Update" asp-controller="LanguageCourses" asp-route-id="@Model.Id" class="btn btn-warning">Muuda</a>
+        <a id="DetailsBack_BTN" asp-action="Index" asp-controller="LanguageCourses" class="btn btn-primary">Tagasi</a>
+    }
+</div>
