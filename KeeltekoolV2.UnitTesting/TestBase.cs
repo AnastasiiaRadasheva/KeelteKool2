@@ -25,6 +25,7 @@ namespace KeeltekoolV2.UnitTesting
             services.AddScoped<ILanguageServices, LanguageCoursesServices>();
             services.AddScoped<ILanguageServices, LanguageCoursesServices>();
             services.AddScoped<ILecturersServices, LecturersServices>();
+            services.AddScoped<IStudentsServices, StudentsServices>();
 
             services.AddDbContext<KeeltekoolV2Context>(x =>
             {
