@@ -3,10 +3,6 @@ using KeeltekoolV2.Core.DTO;
 using KeeltekoolV2.Core.ServiceInterface;
 using KeeltekoolV2.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 
 namespace KeeltekoolV2.ApplicationServices.Servises
 {
@@ -21,15 +17,15 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Lecturer?> Create(LectureDTO dto)
         {
-            if (dto==null)
+            //kontrollitakse kas dto omab mingeid andmeid
+            if (dto == null)
             {
                 return null;
             }
+
             Lecturer lecturer = new Lecturer();
 
             lecturer.Id = Guid.NewGuid();
-
-
             lecturer.FirstName = dto.FirstName;
             lecturer.LastName = dto.LastName;
             lecturer.Qualifications = dto.Qualifications;
@@ -51,6 +47,7 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Lecturer?> Update(LectureDTO dto)
         {
+            //leiame andmebaasist olemasoleva õppejõu
             var lecturer = await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
 
@@ -59,6 +56,7 @@ namespace KeeltekoolV2.ApplicationServices.Servises
                 return null;
             }
 
+            //muudame väljad, Id ja CreatedAt jäävad samaks
             lecturer.FirstName = dto.FirstName;
             lecturer.LastName = dto.LastName;
             lecturer.Qualifications = dto.Qualifications;
@@ -85,26 +83,10 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             return lecturer;
         }
 
-
         public Task<List<Lecturer>> GetAll()
         {
             //TDD punane faas: meetod on olemas, et testid kompileeruks, aga tegevus puudub
             throw new NotImplementedException();
         }
-
-        //Task<Lecturer> ILecturersServices.Delete(LectureDTO dto)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<Lecturer> ILecturersServices.DetailAsync(LectureDTO dto)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<Lecturer> ILecturersServices.Update(LectureDTO dto)
-        //{
-        //    throw new NotImplementedException();
-        //}
     }
 }
