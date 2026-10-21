@@ -80,7 +80,17 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Student?> Delete(Guid id)
         {
-            return null;
+           
+            var domain = await _context.Students.FirstOrDefaultAsync(x => x.Is == id);
+            if ( domain == null)
+            {
+                return null;
+            }
+            _context.Students.Remove(domain);
+            await _context.SaveChangesAsync();
+
+            return domain;
+
         }
     }
 }
