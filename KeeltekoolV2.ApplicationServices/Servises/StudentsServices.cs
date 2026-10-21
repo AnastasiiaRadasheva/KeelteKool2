@@ -93,6 +93,7 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             {
                 return null;
             }
+          
 
             _context.Students.Remove(domain);
             await _context.SaveChangesAsync();
