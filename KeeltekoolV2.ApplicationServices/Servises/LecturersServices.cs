@@ -47,6 +47,11 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Lecturer?> DetailAsync(LectureDTO dto)
         {
+            if (dto == null)
+            {
+                return null;
+            }
+
             return await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
         }
