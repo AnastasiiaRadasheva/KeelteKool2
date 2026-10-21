@@ -33,6 +33,31 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Equal(dto.FirstName, result.FirstName);
         }
 
+        [Fact]
+        public async Task ShouldNot_AddNewLecturer_WhenNamesEmpty()
+        {
+            //ülesseade
+            LectureDTO dto = MockLecturerDtoData();
+            dto.FirstName = "";
+            dto.LastName = "";
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().Create(dto);
+
+            //kontroll
+            Assert.Null(result); //teenus lükkas lisamise tagasi
+        }
+
+        [Fact]
+        public async Task ShouldNot_AddNewLecturer_WhenDtoIsNull()
+        {
+            //tegevus
+            var result = await Svc<ILecturersServices>().Create(null!);
+
+            //kontroll
+            Assert.Null(result);
+        }
+
         //abimeetodid
 
         private async Task<Lecturer> AddObjectToDB()
