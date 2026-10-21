@@ -26,6 +26,12 @@ namespace KeeltekoolV2.ApplicationServices.Servises
                 return null;
             }
 
+            //kui eesnimi või perenimi on tühi, siis õpilast ei lisata
+            if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+            {
+                return null;
+            }
+
             Student domain = new Student();
 
             domain.Id = Guid.NewGuid();
@@ -80,17 +86,18 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Student?> Delete(Guid id)
         {
-           
-            var domain = await _context.Students.FirstOrDefaultAsync(x => x.Id == id);
-            if ( domain == null)
+            var domain = await _context.Students
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (domain == null)
             {
                 return null;
             }
+
             _context.Students.Remove(domain);
             await _context.SaveChangesAsync();
 
             return domain;
-
         }
     }
 }
