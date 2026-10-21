@@ -1,6 +1,7 @@
 using KeeltekoolV2.Core.Domain;
 using KeeltekoolV2.Core.DTO;
 using KeeltekoolV2.Core.ServiceInterface;
+using KeeltekoolV2.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -61,18 +62,17 @@ namespace KeeltekoolV2.UnitTesting
         }
 
         /// <summary>
-        /// Test kontrollib, et olemasoleva õpilase andmeid saab uute andmetega muuta.
+        /// Test kontrollib, et olemasoleva õpilase andmeid saab uute andmetega muuta:
+        /// andmebaasis on uued andmed, id ja loomise aeg jäävad samaks, muutmise aeg uueneb.
         /// </summary>
         [Fact]
         public async Task Should_UpdateStudentWithNewData_WhenDataIsDifferentFromDB()
         {
             //ülesseade
-            StudentDTO dto = new StudentDTO();
-            dto.FirstName = "Test";
-            dto.LastName = "Test";
-            dto.Email = "test@test.ee";
-            dto.LanguageLevel = "A1";
-            var createdStudent = await Svc<IStudentsServices>().Create(dto);
+            Student createdStudent = await AddObjectToDB();
+            //jätame algsed väärtused meelde, sest teenus muudab sama objekti
+            DateTime originalCreatedAt = createdStudent.CreatedAt;
+            DateTime originalModifiedAt = createdStudent.ModifiedAt;
 
             StudentDTO updatedInfo = new StudentDTO();
             updatedInfo.Id = createdStudent.Id;
@@ -82,41 +82,71 @@ namespace KeeltekoolV2.UnitTesting
             updatedInfo.LanguageLevel = "B2";
 
             //tegevus
-            var result = await Svc<IStudentsServices>().Update(updatedInfo);
+            await Svc<IStudentsServices>().Update(updatedInfo);
 
-            //uus kontroll 
-            Assert.NotNull(result);
-            Assert.Equal(updatedInfo.FirstName, result.FirstName);
-            Assert.Equal(updatedInfo.LastName, result.LastName);
-            Assert.Equal(updatedInfo.Email, result.Email);
-            Assert.Equal(updatedInfo.LanguageLevel, result.LanguageLevel);
+            //kontroll
+            var result = await Svc<IStudentsServices>().DetailsAsync(createdStudent.Id);
+
+            Assert.NotNull(result);                                          //õpilane on endiselt andmebaasis
+            Assert.Equal(updatedInfo.Id, result.Id);                         //id ei muutunud
+            Assert.Equal(updatedInfo.FirstName, result.FirstName);           //eesnimi muudeti
+            Assert.Equal(updatedInfo.LastName, result.LastName);             //perenimi muudeti
+            Assert.Equal(updatedInfo.Email, result.Email);                   //e-post muudeti
+            Assert.Equal(updatedInfo.LanguageLevel, result.LanguageLevel);   //keeletase muudeti
+            Assert.Equal(originalCreatedAt, result.CreatedAt);               //loomise aeg jäi samaks
+            Assert.True(result.ModifiedAt >= originalModifiedAt);            //muutmise aeg uuenes
         }
 
         /// <summary>
-        /// Test kontrollib, et õpilase saab kehtiva id järgi kustutada bebebebe
+        /// Test kontrollib, et õpilase saab kehtiva id järgi kustutada:
+        /// teenus tagastab kustutatud objekti ja andmebaasist seda enam ei leita.
         /// </summary>
         [Fact]
         public async Task Should_DeleteStudent_WhenValidIdIsGiven()
         {
             //ülesseade
-            StudentDTO dto = new StudentDTO();
-            dto.FirstName = "Test";
-            dto.LastName = "Test";
-            dto.Email = "testanastasiia@test.ee";
-            dto.LanguageLevel = "A1";
-            var createdStudent = await Svc<IStudentsServices>().Create(dto);
-
-
-            StudentDTO deletedDto = new StudentDTO();
-            deletedDto.Id = createdStudent.Id;
+            Student createdStudent = await AddObjectToDB();
 
             //tegevus
             var result = await Svc<IStudentsServices>().Delete(createdStudent.Id);
             var deleted = await Svc<IStudentsServices>().DetailsAsync(createdStudent.Id);
 
             //kontroll
-            Assert.NotNull(result);
-            Assert.Null(deleted);
+            Assert.Null(deleted);                                            //andmebaasist ei leitud objekti
+            Assert.NotNull(result);                                          //delete tagastas kustutatud objekti
+            Assert.Equal(createdStudent.Id, result.Id);                      //kustutati õige õpilane
+            Assert.Equal(createdStudent.FirstName, result.FirstName);
+            Assert.Equal(createdStudent.LastName, result.LastName);
+            Assert.Equal(createdStudent.Email, result.Email);
+        }
+
+        // ---------------- ise välja mõeldud testid ----------------
+
+        /// <summary>
+        /// Negatiivne test: kui ees- ja perenimi on tühjad, ei tohi teenus õpilast lisada
+        /// ning andmebaasi ei teki ühtegi uut kirjet.
+        /// </summary>
+        [Fact]
+        public async Task ShouldNot_AddStudent_WhenNamesAreEmpty()
+        {
+            //ülesseade
+            StudentDTO dto = MockStudentDtoData();
+            dto.FirstName = "";
+            dto.LastName = " ";
+            dto.Email = "tyhjadnimed@test.ee";
+            var context = Svc<KeeltekoolV2Context>();
+            int countBefore = context.Students.Count();
+
+            //tegevus
+            var result = await Svc<IStudentsServices>().Create(dto);
+
+            //kontroll
+            int countAfter = context.Students.Count();
+            Assert.Null(result);                                                     //teenus lükkas lisamise tagasi
+            Assert.Equal(countBefore, countAfter);                                   //andmebaasi ei lisatud midagi
+            Assert.False(context.Students.Any(x => x.Email == dto.Email));           //sellise e-postiga õpilast ei ole
+            Assert.True(string.IsNullOrWhiteSpace(dto.FirstName));                   //eesnimi oli tõesti tühi
+            Assert.True(string.IsNullOrWhiteSpace(dto.LastName));                    //perenimi oli tõesti tühi
         }
 
         //abimeetod: lisab andmebaasi testõpilase ja tagastab selle
