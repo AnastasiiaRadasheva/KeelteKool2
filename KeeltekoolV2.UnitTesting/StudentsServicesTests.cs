@@ -106,11 +106,17 @@ namespace KeeltekoolV2.UnitTesting
             dto.LanguageLevel = "A1";
             var createdStudent = await Svc<IStudentsServices>().Create(dto);
 
+
+            StudentDTO deletedDto = new StudentDTO();
+            deletedDto.Id = createdStudent.Id;
+
             //tegevus
             var result = await Svc<IStudentsServices>().Delete(createdStudent.Id);
+            var deleted = await Svc<IStudentsServices>().DetailsAsync(createdStudent.Id);
 
             //kontroll
             Assert.NotNull(result);
+            Assert.Null(deleted);
         }
 
         //abimeetod: lisab andmebaasi testõpilase ja tagastab selle
