@@ -8,11 +8,9 @@ namespace KeeltekoolV2.Core.ServiceInterface
 {
     public interface ILecturersServices
     {
-
-        Task<Lecturer> Create(LectureDTO dto);
-        Task<Lecturer> Update(LectureDTO dto);
-        Task<Lecturer> DetailAsync(LectureDTO dto);
-        Task<Lecturer> Delete(LectureDTO dto);
-
+        Task<Lecturer?> Create(LectureDTO dto);
+        Task<Lecturer?> Update(LectureDTO dto);
+        Task<Lecturer?> DetailAsync(LectureDTO dto);
+        Task<Lecturer?> Delete(LectureDTO dto);
     }
 }

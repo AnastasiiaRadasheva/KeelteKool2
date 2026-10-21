@@ -19,7 +19,7 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             _context = context;
         }
 
-        public async Task<Lecturer> Create(LectureDTO dto)
+        public async Task<Lecturer?> Create(LectureDTO dto)
         {
             if (dto==null)
             {
@@ -43,13 +43,13 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             return lecturer;
         }
 
-        public async Task<Lecturer> DetailAsync(LectureDTO dto)
+        public async Task<Lecturer?> DetailAsync(LectureDTO dto)
         {
             return await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
         }
 
-        public async Task<Lecturer> Update(LectureDTO dto)
+        public async Task<Lecturer?> Update(LectureDTO dto)
         {
             var lecturer = await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
@@ -69,7 +69,7 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             return lecturer;
         }
 
-        public async Task<Lecturer> Delete(LectureDTO dto)
+        public async Task<Lecturer?> Delete(LectureDTO dto)
         {
             var lecturer = await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
