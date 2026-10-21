@@ -12,5 +12,6 @@ namespace KeeltekoolV2.Core.ServiceInterface
         Task<Lecturer?> Update(LectureDTO dto);
         Task<Lecturer?> DetailAsync(LectureDTO dto);
         Task<Lecturer?> Delete(LectureDTO dto);
+        Task<List<Lecturer>> GetAll();
     }
 }

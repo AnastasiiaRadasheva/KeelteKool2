@@ -86,6 +86,12 @@ namespace KeeltekoolV2.ApplicationServices.Servises
         }
 
 
+        public Task<List<Lecturer>> GetAll()
+        {
+            //TDD punane faas: meetod on olemas, et testid kompileeruks, aga tegevus puudub
+            throw new NotImplementedException();
+        }
+
         //Task<Lecturer> ILecturersServices.Delete(LectureDTO dto)
         //{
         //    throw new NotImplementedException();
