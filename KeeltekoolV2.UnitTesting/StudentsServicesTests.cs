@@ -149,6 +149,32 @@ namespace KeeltekoolV2.UnitTesting
             Assert.True(string.IsNullOrWhiteSpace(dto.LastName));                    //perenimi oli tõesti tühi
         }
 
+        /// <summary>
+        /// Negatiivne test: kui e-posti aadressis puudub @ märk, ei tohi teenus õpilast lisada.
+        /// </summary>
+        [Fact]
+        public async Task ShouldNot_AddStudent_WhenEmailIsInvalid()
+        {
+            //ülesseade
+            StudentDTO dto = MockStudentDtoData();
+            dto.FirstName = "Vale";
+            dto.LastName = "Email";
+            dto.Email = "vale.email.test.ee";
+            var context = Svc<KeeltekoolV2Context>();
+            int countBefore = context.Students.Count();
+
+            //tegevus
+            var result = await Svc<IStudentsServices>().Create(dto);
+
+            //kontroll
+            int countAfter = context.Students.Count();
+            Assert.Null(result);                                                     //teenus lükkas lisamise tagasi
+            Assert.Equal(countBefore, countAfter);                                   //andmebaasi ei lisatud midagi
+            Assert.False(context.Students.Any(x => x.Email == dto.Email));           //vale e-postiga kirjet ei ole
+            Assert.False(context.Students.Any(x => x.FirstName == "Vale" && x.LastName == "Email"));
+            Assert.DoesNotContain("@", dto.Email);                                   //e-post oli tõesti ilma @ märgita
+        }
+
         //abimeetod: lisab andmebaasi testõpilase ja tagastab selle
         private async Task<Student> AddObjectToDB()
         {
