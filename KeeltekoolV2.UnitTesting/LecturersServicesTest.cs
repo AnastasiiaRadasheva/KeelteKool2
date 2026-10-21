@@ -58,13 +58,39 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Null(result);
         }
 
+        //Details
+
+        [Fact]
+        public async Task Should_ReturnLecturerDetails_WhenLecturerExists()
+        {
+            //ülesseade
+            var created = await AddObjectToDB();
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().DetailAsync(new LectureDTO { Id = created.Id });
+
+            //kontroll
+            Assert.NotNull(result);
+            Assert.Equal(created.Id, result.Id);
+        }
+
+        [Fact]
+        public async Task ShouldNot_ReturnLecturerDetails_WhenIdDoesNotExist()
+        {
+            //tegevus
+            var result = await Svc<ILecturersServices>().DetailAsync(new LectureDTO { Id = Guid.NewGuid() });
+
+            //kontroll
+            Assert.Null(result);
+        }
+
         //abimeetodid
 
         private async Task<Lecturer> AddObjectToDB()
         {
             LectureDTO dto = MockLecturerDtoData();
             var created = await Svc<ILecturersServices>().Create(dto);
-            return created;
+            return created!;
         }
 
         private LectureDTO MockLecturerDtoData()
