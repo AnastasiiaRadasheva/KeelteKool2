@@ -19,7 +19,27 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Student?> Create(StudentDTO dto)
         {
-            return null;
+            //kontrollitakse kas dto omab mingeid andmeid
+            if (dto == null)
+            {
+                return null;
+            }
+
+            Student domain = new Student();
+
+            domain.Id = Guid.NewGuid();
+            domain.FirstName = dto.FirstName;
+            domain.LastName = dto.LastName;
+            domain.Email = dto.Email;
+            domain.LanguageLevel = dto.LanguageLevel ?? "";
+            domain.UserID = dto.UserID;
+            domain.CreatedAt = DateTime.Now;
+            domain.ModifiedAt = DateTime.Now;
+
+            await _context.Students.AddAsync(domain);
+            await _context.SaveChangesAsync();
+
+            return domain;
         }
 
         public async Task<Student?> DetailsAsync(Guid id)
