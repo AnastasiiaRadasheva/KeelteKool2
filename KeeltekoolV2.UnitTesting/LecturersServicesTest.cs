@@ -117,6 +117,33 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Null(result);
         }
 
+        //Delete
+
+        [Fact]
+        public async Task Should_DeleteLecturer_WhenIdIsValid()
+        {
+            //ülesseade
+            var created = await AddObjectToDB();
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().Delete(new LectureDTO { Id = created.Id });
+            var deleted = await Svc<ILecturersServices>().DetailAsync(new LectureDTO { Id = created.Id });
+
+            //kontroll
+            Assert.NotNull(result);
+            Assert.Null(deleted);
+        }
+
+        [Fact]
+        public async Task ShouldNot_DeleteLecturer_WhenIdDoesNotExist()
+        {
+            //tegevus
+            var result = await Svc<ILecturersServices>().Delete(new LectureDTO { Id = Guid.NewGuid() });
+
+            //kontroll
+            Assert.Null(result);
+        }
+
         //abimeetodid
 
         private async Task<Lecturer> AddObjectToDB()
