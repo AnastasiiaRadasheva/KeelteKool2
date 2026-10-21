@@ -81,7 +81,7 @@ namespace KeeltekoolV2.ApplicationServices.Servises
         public async Task<Student?> Delete(Guid id)
         {
            
-            var domain = await _context.Students.FirstOrDefaultAsync(x => x.Is == id);
+            var domain = await _context.Students.FirstOrDefaultAsync(x => x.Id == id);
             if ( domain == null)
             {
                 return null;

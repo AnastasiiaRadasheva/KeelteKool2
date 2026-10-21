@@ -84,8 +84,12 @@ namespace KeeltekoolV2.UnitTesting
             //tegevus
             var result = await Svc<IStudentsServices>().Update(updatedInfo);
 
-            //kontroll
+            //uus kontroll 
             Assert.NotNull(result);
+            Assert.Equal(updatedInfo.FirstName, result.FirstName);
+            Assert.Equal(updatedInfo.LastName, result.LastName);
+            Assert.Equal(updatedInfo.Email, result.Email);
+            Assert.Equal(updatedInfo.LanguageLevel, result.LanguageLevel);
         }
 
         /// <summary>
