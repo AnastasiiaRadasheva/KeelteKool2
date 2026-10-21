@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace KeeltekoolV2.ApplicationServices.Servises
+namespace KeeltekoolV2.Core.ServiceInterface
 {
     public interface ILecturersServices
     {
