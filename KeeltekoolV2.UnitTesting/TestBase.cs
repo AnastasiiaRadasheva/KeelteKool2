@@ -23,12 +23,16 @@ namespace KeeltekoolV2.UnitTesting
         public virtual void SetupServices(IServiceCollection services)
         {
             services.AddScoped<ILanguageServices, LanguageCoursesServices>();
-            services.AddScoped<ILanguageServices, LanguageCoursesServices>();
             services.AddScoped<ILecturersServices, LecturersServices>();
+
+            //iga TestBase'i isend (ehk iga test) saab oma unikaalse nimega mälus asuva andmebaasi.
+            //Nii ei jää eelmiste testide andmed järgmist testi segama ning
+            //kirjete arvu saab testides täpselt kontrollida.
+            var databaseName = Guid.NewGuid().ToString();
 
             services.AddDbContext<KeeltekoolV2Context>(x =>
             {
-                x.UseInMemoryDatabase("TEST");
+                x.UseInMemoryDatabase(databaseName);
                 x.ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             });
 
