@@ -144,6 +144,23 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Null(result);
         }
 
+        //getall
+
+        [Fact]
+        public async Task Should_ReturnAllLecturers_WhenLecturersExist()
+        {
+            //ülesseade
+            await AddObjectToDB();
+            await AddObjectToDB();
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().GetAll();
+
+            //kontroll
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count);
+        }
+
         //abimeetodid
 
         private async Task<Lecturer> AddObjectToDB()
