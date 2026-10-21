@@ -23,12 +23,18 @@ namespace KeeltekoolV2.ApplicationServices.Servises
                 return null;
             }
 
+            //kui eesnimi või perenimi on tühi, siis õppejõudu ei lisata
+            if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+            {
+                return null;
+            }
+
             Lecturer lecturer = new Lecturer();
 
             lecturer.Id = Guid.NewGuid();
             lecturer.FirstName = dto.FirstName;
             lecturer.LastName = dto.LastName;
-            lecturer.Qualifications = dto.Qualifications;
+            lecturer.Qualifications = dto.Qualifications ?? "";
             lecturer.UserID = "";
             lecturer.CreatedAt = DateTime.Now;
             lecturer.ModifiedAt = DateTime.Now;
