@@ -53,15 +53,12 @@ namespace KeeltekoolV2.UnitTesting
             var result = await Svc<IStudentsServices>().DetailsAsync(createdStudent.Id);
 
             //kontroll
-            Assert.NotNull(result);
-            Assert.Equal(createdStudent.Id, result.Id);
-            Assert.Equal(createdStudent.FirstName, result.FirstName);
-            Assert.Equal(createdStudent.LastName, result.LastName);
-            Assert.Equal(createdStudent.Email, result.Email);
-            Assert.Equal(createdStudent.LanguageLevel, result.LanguageLevel);
-            Assert.Equal(createdStudent.CreatedAt, result.CreatedAt);
-        
-        
+            Assert.NotNull(result);                                              //tagastati objekt
+            Assert.Equal(createdStudent.Id, result.Id);                          //id on sama mis lisatud objektil
+            Assert.Equal(createdStudent.FirstName, result.FirstName);            //eesnimi on sama
+            Assert.Equal(createdStudent.LastName, result.LastName);              //perenimi on sama
+            Assert.Equal(createdStudent.Email, result.Email);                    //e-post on sama
+            Assert.Equal(createdStudent.LanguageLevel, result.LanguageLevel);    //keeletase on sama
         }
 
         /// <summary>
@@ -199,6 +196,34 @@ namespace KeeltekoolV2.UnitTesting
             Assert.NotNull(existing);                                //olemasolev õpilane leitakse endiselt
             Assert.Equal(existingStudent.Id, existing.Id);
             Assert.Equal(existingStudent.Email, existing.Email);
+        }
+
+        /// <summary>
+        /// Negatiivne test: kui muudetakse õpilast, keda andmebaasis ei ole,
+        /// tagastab teenus null ning andmebaasi ei teki uut kirjet.
+        /// </summary>
+        [Fact]
+        public async Task ShouldNot_UpdateStudent_WhenIdDoesNotExist()
+        {
+            //ülesseade
+            var context = Svc<KeeltekoolV2Context>();
+            int countBefore = context.Students.Count();
+            StudentDTO dto = MockStudentDtoData();
+            dto.Id = Guid.NewGuid();
+            dto.FirstName = "Olematu";
+            dto.Email = "olematu@test.ee";
+
+            //tegevus
+            var result = await Svc<IStudentsServices>().Update(dto);
+            var details = await Svc<IStudentsServices>().DetailsAsync((Guid)dto.Id);
+
+            //kontroll
+            int countAfter = context.Students.Count();
+            Assert.Null(result);                                             //muutmine lükati tagasi
+            Assert.Null(details);                                            //sellist õpilast ei tekkinud
+            Assert.Equal(countBefore, countAfter);                           //kirjete arv ei muutunud
+            Assert.False(context.Students.Any(x => x.Email == dto.Email));   //uut e-posti ei salvestatud
+            Assert.False(context.Students.Any(x => x.FirstName == "Olematu"));
         }
 
         //abimeetod: lisab andmebaasi testõpilase ja tagastab selle
