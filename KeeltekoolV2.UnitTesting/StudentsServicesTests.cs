@@ -226,6 +226,31 @@ namespace KeeltekoolV2.UnitTesting
             Assert.False(context.Students.Any(x => x.FirstName == "Olematu"));
         }
 
+        /// <summary>
+        /// Negatiivne test: kui kustutatakse olematu id-ga õpilast, tagastab teenus null
+        /// ja ühtegi olemasolevat õpilast ei kustutata.
+        /// </summary>
+        [Fact]
+        public async Task ShouldNot_DeleteStudent_WhenIdDoesNotExist()
+        {
+            //ülesseade
+            Student existingStudent = await AddObjectToDB();
+            var context = Svc<KeeltekoolV2Context>();
+            int countBefore = context.Students.Count();
+
+            //tegevus
+            var result = await Svc<IStudentsServices>().Delete(Guid.NewGuid());
+
+            //kontroll
+            int countAfter = context.Students.Count();
+            var stillExists = await Svc<IStudentsServices>().DetailsAsync(existingStudent.Id);
+            Assert.Null(result);                                     //midagi ei kustutatud
+            Assert.Equal(countBefore, countAfter);                   //kirjete arv ei muutunud
+            Assert.NotNull(stillExists);                             //olemasolev õpilane on alles
+            Assert.Equal(existingStudent.Id, stillExists.Id);
+            Assert.Equal(existingStudent.FirstName, stillExists.FirstName);
+        }
+
         //abimeetod: lisab andmebaasi testõpilase ja tagastab selle
         private async Task<Student> AddObjectToDB()
         {
