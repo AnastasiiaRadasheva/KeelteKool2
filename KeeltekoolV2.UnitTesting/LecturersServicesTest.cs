@@ -84,6 +84,39 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Null(result);
         }
 
+        //Update
+
+        [Fact]
+        public async Task Should_UpdateLecturer_WhenDataIsDifferentFromDB()
+        {
+            //ülesseade
+            var created = await AddObjectToDB();
+            LectureDTO update = MockLecturerDtoData();
+            update.Id = created.Id;
+            update.FirstName = "UusEesnimi";
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().Update(update);
+
+            //kontroll
+            Assert.NotNull(result);
+            Assert.Equal("UusEesnimi", result.FirstName);
+        }
+
+        [Fact]
+        public async Task ShouldNot_UpdateLecturer_WhenLecturerDoesNotExist()
+        {
+            //ülesseade
+            LectureDTO update = MockLecturerDtoData();
+            update.Id = Guid.NewGuid();
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().Update(update);
+
+            //kontroll
+            Assert.Null(result);
+        }
+
         //abimeetodid
 
         private async Task<Lecturer> AddObjectToDB()
