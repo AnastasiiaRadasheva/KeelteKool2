@@ -58,6 +58,17 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Lecturer?> Update(LectureDTO dto)
         {
+            if (dto == null)
+            {
+                return null;
+            }
+
+            //olemasolevaid andmeid ei tohi tühjade nimedega üle kirjutada
+            if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+            {
+                return null;
+            }
+
             //leiame andmebaasist olemasoleva õppejõu
             var lecturer = await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
@@ -70,7 +81,7 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             //muudame väljad, Id ja CreatedAt jäävad samaks
             lecturer.FirstName = dto.FirstName;
             lecturer.LastName = dto.LastName;
-            lecturer.Qualifications = dto.Qualifications;
+            lecturer.Qualifications = dto.Qualifications ?? "";
             lecturer.ModifiedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
