@@ -110,10 +110,9 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             return lecturer;
         }
 
-        public Task<List<Lecturer>> GetAll()
+        public async Task<List<Lecturer>> GetAll()
         {
-            //TDD punane faas: meetod on olemas, et testid kompileeruks, aga tegevus puudub
-            throw new NotImplementedException();
+            return await _context.Set<Lecturer>().ToListAsync();
         }
     }
 }
