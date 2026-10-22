@@ -31,11 +31,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="LanguageCourses" asp-action="Index">Keelekursused</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Students" asp-action="Index">Õpilased</a>
+                        </li>
                     </ul>
-                    <ul class="navbar-nav" style="align-self: end;"> 
-                      
+                    <ul class="navbar-nav" style="align-self: end;">
+
                         @if (signInManager.IsSignedIn(User))
-                            {
+                        {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Accounts" asp-action="ChangePassword">Muuda parooli</a>
                             </li>
@@ -44,16 +47,16 @@
                                     <button type="submit" class="nav-link btn btn-link text-dark">Logi välja</button>
                                 </form>
                             </li>
-                            } 
+                        }
                         else
-                            {
+                        {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Accounts" asp-action="Register">Registreeru</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Accounts" asp-action="Login">Logi sisse</a>
                             </li>
-                            }
+                        }
 
                         <li></li>
                     </ul>
