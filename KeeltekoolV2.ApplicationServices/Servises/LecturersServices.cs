@@ -91,6 +91,11 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<Lecturer?> Delete(LectureDTO dto)
         {
+            if (dto == null)
+            {
+                return null;
+            }
+
             var lecturer = await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
 
