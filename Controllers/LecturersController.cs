@@ -1,31 +1,36 @@
-﻿using KeeltekoolV2.ApplicationServices.Servises;
+﻿using KeelteKool2.Models.Lecturers;
+using KeeltekoolV2.Core.DTO;
 using KeeltekoolV2.Core.ServiceInterface;
-using KeeltekoolV2.Data;
 using Microsoft.AspNetCore.Mvc;
-using KeeltekoolV2.Data;
-using KeeltekoolV2.Core.ServiceInterface;
 
 namespace KeelteKool2.Controllers
 {
     public class LecturersController : Controller
     {
-        private readonly KeeltekoolV2Context _context;
-
         private readonly ILecturersServices _lecturersServices;
 
-             private readonly IFileServices _filesServices;
-        public LecturersController(
-    KeeltekoolV2Context context,
-    ILecturersServices lecturersServices,
-    IFileServices filesServices)
+        public LecturersController(ILecturersServices lecturersServices)
         {
-            _context = context;
             _lecturersServices = lecturersServices;
-            _filesServices = filesServices;
         }
-        public IActionResult Index()
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            return View();
+            //küsime teenuselt kõik õppejõud ja teeme need vaatemudeliteks
+            var lecturers = await _lecturersServices.GetAll();
+            var result = lecturers
+                .Select(x => new LecturerViewModel
+                {
+                    Id = x.Id,
+                    FirstName = x.FirstName,
+                    LastName = x.LastName,
+                    Qualifications = x.Qualifications,
+                    CreatedAt = x.CreatedAt,
+                    ModifiedAt = x.ModifiedAt
+                })
+                .ToList();
+            return View(result);
         }
     }
 }
