@@ -32,5 +32,43 @@ namespace KeelteKool2.Controllers
                 .ToList();
             return View(result);
         }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            LecturerCreateUpdateViewModel vm = new();
+            return View("CreateUpdate", vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(LecturerCreateUpdateViewModel vm)
+        {
+            //kontrollime et vm ei oleks null
+            if (vm == null)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            //kontrollime et vmi modelstate on õige
+            if (!ModelState.IsValid)
+            {
+                return View("CreateUpdate", vm);
+            }
+            //teeme uue DTO-objekti ja asetame dtosse vmi andmed
+            var dto = new LectureDTO()
+            {
+                Id = vm.Id ?? Guid.Empty,
+                FirstName = vm.FirstName,
+                LastName = vm.LastName,
+                Qualifications = vm.Qualifications ?? ""
+            };
+            //teostatakse päring teenusele
+            var result = await _lecturersServices.Create(dto);
+            if (result == null)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
