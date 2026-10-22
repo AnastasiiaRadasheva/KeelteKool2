@@ -97,5 +97,54 @@ namespace KeelteKool2.Controllers
 
             return View("DetailsDelete", vm);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Update(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return NotFound();
+            }
+            var lecturerToUpdate = await _lecturersServices.DetailAsync(new LectureDTO { Id = id });
+            if (lecturerToUpdate == null)
+            {
+                return NotFound();
+            }
+            var vm = new LecturerCreateUpdateViewModel()
+            {
+                Id = lecturerToUpdate.Id,
+                FirstName = lecturerToUpdate.FirstName,
+                LastName = lecturerToUpdate.LastName,
+                Qualifications = lecturerToUpdate.Qualifications,
+                CreatedAt = lecturerToUpdate.CreatedAt,
+                ModifiedAt = lecturerToUpdate.ModifiedAt
+            };
+            return View("CreateUpdate", vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Update(LecturerCreateUpdateViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("CreateUpdate", vm);
+            }
+            var dto = new LectureDTO()
+            {
+                Id = vm.Id ?? Guid.Empty,
+                FirstName = vm.FirstName,
+                LastName = vm.LastName,
+                Qualifications = vm.Qualifications ?? "",
+                CreatedAt = vm.CreatedAt,
+                ModifiedAt = vm.ModifiedAt
+            };
+            var result = await _lecturersServices.Update(dto);
+            if (result == null)
+            {
+                return NotFound();
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
