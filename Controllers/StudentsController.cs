@@ -151,5 +151,43 @@ namespace KeelteKool2.Controllers
             }
             return RedirectToAction(nameof(Update), new { id = result.Id });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Delete(Guid? id)
+        {
+            if (id == null || id == Guid.Empty)
+            {
+                return NotFound();
+            }
+            var student = await _studentsServices.DetailsAsync((Guid)id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+            var vm = new StudentViewModel()
+            {
+                Id = student.Id,
+                FirstName = student.FirstName,
+                LastName = student.LastName,
+                Email = student.Email,
+                LanguageLevel = student.LanguageLevel
+            };
+
+            ViewData["ViewType"] = "delete";
+
+            return View("DetailsDelete", vm);
+        }
+
+        [HttpPost]
+        [ActionName("DeleteConfirmed")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var studentToDelete = await _studentsServices.Delete(id);
+            if (studentToDelete == null)
+            {
+                return NotFound();
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
