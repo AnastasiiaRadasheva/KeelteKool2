@@ -146,5 +146,45 @@ namespace KeelteKool2.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Delete(Guid? id)
+        {
+            if (id == null || id == Guid.Empty)
+            {
+                return NotFound();
+            }
+            var lecturer = await _lecturersServices.DetailAsync(new LectureDTO { Id = id.Value });
+            if (lecturer == null)
+            {
+                return NotFound();
+            }
+            var vm = new LecturerViewModel()
+            {
+                Id = lecturer.Id,
+                FirstName = lecturer.FirstName,
+                LastName = lecturer.LastName,
+                Qualifications = lecturer.Qualifications,
+                CreatedAt = lecturer.CreatedAt,
+                ModifiedAt = lecturer.ModifiedAt
+            };
+
+            ViewData["ViewType"] = "delete";
+
+            return View("DetailsDelete", vm);
+        }
+
+        [HttpPost]
+        [ActionName("DeleteConfirmed")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var lecturerToDelete = await _lecturersServices.Delete(new LectureDTO { Id = id });
+            if (lecturerToDelete == null)
+            {
+                return NotFound();
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
