@@ -74,5 +74,82 @@ namespace KeelteKool2.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return NotFound();
+            }
+            var student = await _studentsServices.DetailsAsync(id);
+            if (student == null)
+            {
+                return NotFound();
+            }
+            var vm = new StudentViewModel()
+            {
+                Id = student.Id,
+                FirstName = student.FirstName,
+                LastName = student.LastName,
+                Email = student.Email,
+                LanguageLevel = student.LanguageLevel
+            };
+
+            ViewData["ViewType"] = "details";
+
+            return View("DetailsDelete", vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Update(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return NotFound();
+            }
+            var studentToUpdate = await _studentsServices.DetailsAsync(id);
+            if (studentToUpdate == null)
+            {
+                return NotFound();
+            }
+            var vm = new StudentCreateUpdateViewModel()
+            {
+                Id = studentToUpdate.Id,
+                FirstName = studentToUpdate.FirstName,
+                LastName = studentToUpdate.LastName,
+                Email = studentToUpdate.Email,
+                LanguageLevel = studentToUpdate.LanguageLevel,
+                CreatedAt = studentToUpdate.CreatedAt,
+                ModifiedAt = studentToUpdate.ModifiedAt
+            };
+            return View("CreateUpdate", vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Update(StudentCreateUpdateViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("CreateUpdate", vm);
+            }
+            var dto = new StudentDTO()
+            {
+                Id = vm.Id,
+                FirstName = vm.FirstName,
+                LastName = vm.LastName,
+                Email = vm.Email,
+                LanguageLevel = vm.LanguageLevel,
+                CreatedAt = vm.CreatedAt,
+                ModifiedAt = vm.ModifiedAt
+            };
+            var result = await _studentsServices.Update(dto);
+            if (result == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+            return RedirectToAction(nameof(Update), new { id = result.Id });
+        }
     }
 }
