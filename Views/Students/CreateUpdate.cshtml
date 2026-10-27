@@ -1,0 +1,55 @@
+@model KeelteKool2.Models.Students.StudentCreateUpdateViewModel
+
+@* separate update create *@
+@if (Model.Id.HasValue)
+{
+    <h1>Muuda õpilast</h1>
+}
+else
+{
+    <h1>Lisa uus õpilane</h1>
+}
+
+<div>
+    <form method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="CreatedAt" type="hidden" />
+        <input asp-for="ModifiedAt" type="hidden" />
+
+        <div class="form-group">
+            <label asp-for="FirstName" class="control-label">Eesnimi</label>
+            <input id="CU_Student_FirstName" asp-for="FirstName" class="form-control" />
+            <span asp-validation-for="FirstName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LastName" class="control-label">Perenimi</label>
+            <input id="CU_Student_LastName" asp-for="LastName" class="form-control" />
+            <span asp-validation-for="LastName" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Email" class="control-label">E-post</label>
+            <input id="CU_Student_Email" asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="LanguageLevel" class="control-label">Keeletase</label>
+            <input id="CU_Student_LanguageLevel" asp-for="LanguageLevel" class="form-control" />
+            <span asp-validation-for="LanguageLevel" class="text-danger"></span>
+        </div>
+
+        @if (Model.Id.HasValue)
+        {
+            <input id="CU_Update_BTN" asp-action="Update" asp-controller="Students" type="submit" value="Muuda" class="btn btn-success" />
+        }
+        else
+        {
+            <input id="CU_Create_BTN" asp-action="Create" asp-controller="Students" type="submit" value="Lisa" class="btn btn-success" />
+        }
+        <a id="CU_Cancel_BTN" asp-action="Index" asp-controller="Students" class="btn btn-secondary">Tagasi</a>
+    </form>
+</div>
