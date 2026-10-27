@@ -32,6 +32,12 @@ namespace KeeltekoolV2.ApplicationServices.Servises
                 return null;
             }
 
+            //e-post peab olemas olema ja sisaldama @ märki
+            if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
+            {
+                return null;
+            }
+
             Student domain = new Student();
 
             domain.Id = Guid.NewGuid();
@@ -93,7 +99,6 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             {
                 return null;
             }
-          
 
             _context.Students.Remove(domain);
             await _context.SaveChangesAsync();
