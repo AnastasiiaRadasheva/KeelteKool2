@@ -48,8 +48,6 @@ namespace KeeltekoolV2.UnitTesting
             Assert.NotNull(result);
             Assert.Equal(created.Id, result.Id);
         }
-
-
        
         //update test
         [Fact]

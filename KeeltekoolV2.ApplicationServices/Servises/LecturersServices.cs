@@ -17,7 +17,6 @@ namespace KeeltekoolV2.ApplicationServices.Servises
         {
             _context = context;
         }
-        
 
         public async Task<Lecturer> Create(LectureDTO dto)
         {
