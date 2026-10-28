@@ -32,9 +32,10 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             Lecturer lecturer = new Lecturer();
 
             lecturer.Id = Guid.NewGuid();
-            lecturer.FirstName = dto.FirstName;
-            lecturer.LastName = dto.LastName;
-            lecturer.Qualifications = dto.Qualifications ?? "";
+            //andmetelt eemaldatakse algusest ja lõpust üleliigsed tühikud
+            lecturer.FirstName = dto.FirstName.Trim();
+            lecturer.LastName = dto.LastName.Trim();
+            lecturer.Qualifications = (dto.Qualifications ?? "").Trim();
             lecturer.UserID = "";
             lecturer.CreatedAt = DateTime.Now;
             lecturer.ModifiedAt = DateTime.Now;
@@ -79,9 +80,9 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             }
 
             //muudame väljad, Id ja CreatedAt jäävad samaks
-            lecturer.FirstName = dto.FirstName;
-            lecturer.LastName = dto.LastName;
-            lecturer.Qualifications = dto.Qualifications ?? "";
+            lecturer.FirstName = dto.FirstName.Trim();
+            lecturer.LastName = dto.LastName.Trim();
+            lecturer.Qualifications = (dto.Qualifications ?? "").Trim();
             lecturer.ModifiedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();

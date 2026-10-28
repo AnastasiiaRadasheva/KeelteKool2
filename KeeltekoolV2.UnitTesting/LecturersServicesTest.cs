@@ -1,6 +1,8 @@
 ﻿using KeeltekoolV2.Core.Domain;
 using KeeltekoolV2.Core.DTO;
 using KeeltekoolV2.Core.ServiceInterface;
+using KeeltekoolV2.Data;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace KeeltekoolV2.UnitTesting
@@ -57,7 +59,6 @@ namespace KeeltekoolV2.UnitTesting
             //kontroll
             Assert.Null(result);
         }
-
         //Details
 
         [Fact]
@@ -161,7 +162,52 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Equal(2, result.Count);
         }
 
+        //enda välja mõeldud testid
+
+        /// <summary>
+        /// Test kontrollib, et õppejõu lisamisel eemaldatakse eesnime, perenime ja kvalifikatsioonide
+        /// algusest ning lõpust tühikud. Kontrollitakse nii teenuse tagastatud objekti kui ka
+        /// andmebaasist uuesti loetud kirjet ning seda, et andmebaasi tekkis täpselt üks kirje.
+        /// </summary>
+        [Fact]
+        public async Task Should_TrimNames_WhenNamesHaveWhitespace()
+        {
+            //ülesseade
+            LectureDTO dto = new LectureDTO
+            {
+                FirstName = "  Adriana  ",
+                LastName = "  Pikaljov  ",
+                Qualifications = "  loll keeleteaduses  "
+            };
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().Create(dto);
+            ClearTracking(); //sunnime järgmise lugemise päriselt andmebaasist tulema
+            var fromDb = await Svc<ILecturersServices>().DetailAsync(new LectureDTO { Id = result?.Id ?? Guid.Empty });
+
+            //kontroll
+            Assert.NotNull(result);
+            Assert.Equal("Adriana", result.FirstName);
+            Assert.Equal("Pikaljov", result.LastName);
+            Assert.Equal("loll keeleteaduses", result.Qualifications);
+            Assert.NotNull(fromDb);
+            Assert.Equal("Adriana", fromDb.FirstName);
+            Assert.Equal(1, await CountLecturersInDb());
+        }
+
         //abimeetodid
+
+        //loeb andmebaasist kokku kui palju õppejõude seal päriselt on
+        private async Task<int> CountLecturersInDb()
+        {
+            return await Svc<KeeltekoolV2Context>().Lecturer.CountAsync();
+        }
+
+        //unustab kõik andmebaasikonteksti mällu salvestatud objektid, nii tuleb järgmine lugemine päriselt andmebaasist
+        private void ClearTracking()
+        {
+            Svc<KeeltekoolV2Context>().ChangeTracker.Clear();
+        }
 
         private async Task<Lecturer> AddObjectToDB()
         {
