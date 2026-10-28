@@ -226,6 +226,82 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Equal(2, await CountLecturersInDb());
         }
 
+        /// <summary>
+        /// Negatiivne test: kui muutmisel on eesnimi või perenimi tühi, siis uuendamist ei tehta (tagastatakse null)
+        /// ja andmebaasis olevad andmed (sh kvalifikatsioonid ja muutmise aeg) jäävad täpselt samaks,
+        /// isegi kui samal ajal üritati muuta ka kvalifikatsioone.
+        /// </summary>
+        [Fact]
+        public async Task ShouldNot_ChangeData_WhenUpdateNamesEmpty()
+        {
+            //ülesseade
+            var created = await AddObjectToDB();
+            var id = created.Id;
+            var firstName = created.FirstName;
+            var lastName = created.LastName;
+            var qualifications = created.Qualifications;
+            var modifiedAt = created.ModifiedAt;
+
+            LectureDTO update = new LectureDTO
+            {
+                Id = id,
+                FirstName = "",
+                LastName = "UusPerenimi",
+                Qualifications = "Muudetud kvalifikatsioon"
+            };
+
+            //tegevus
+            var resultEmptyFirstName = await Svc<ILecturersServices>().Update(update);
+            update.FirstName = "UusEesnimi";
+            update.LastName = "   ";
+            var resultBlankLastName = await Svc<ILecturersServices>().Update(update);
+            ClearTracking();
+            var fromDb = await Svc<ILecturersServices>().DetailAsync(new LectureDTO { Id = id });
+
+            //kontroll
+            Assert.Null(resultEmptyFirstName);
+            Assert.Null(resultBlankLastName);
+            Assert.NotNull(fromDb);
+            Assert.Equal(firstName, fromDb.FirstName);
+            Assert.Equal(lastName, fromDb.LastName);
+            Assert.Equal(qualifications, fromDb.Qualifications);
+            Assert.Equal(modifiedAt, fromDb.ModifiedAt);
+        }
+
+        /// <summary>
+        /// Test kontrollib ajatemplite õigsust muutmisel: loomise aeg (CreatedAt) ja Id jäävad samaks,
+        /// aga muutmise aeg (ModifiedAt) uueneb hilisemaks. Sama kontrollitakse ka andmebaasist uuesti loetud kirjel.
+        /// </summary>
+        [Fact]
+        public async Task Should_KeepCreatedAt_AndRefreshModifiedAt_WhenUpdated()
+        {
+            //ülesseade
+            var created = await AddObjectToDB();
+            var id = created.Id;
+            var createdAt = created.CreatedAt;
+            var modifiedAtBefore = created.ModifiedAt;
+
+            LectureDTO update = MockLecturerDtoData();
+            update.Id = id;
+            update.FirstName = "Muudetud";
+
+            await Task.Delay(50); //väike paus, et uus kellaaeg oleks kindlasti hilisem
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().Update(update);
+            ClearTracking();
+            var fromDb = await Svc<ILecturersServices>().DetailAsync(new LectureDTO { Id = id });
+
+            //kontroll
+            Assert.NotNull(result);
+            Assert.Equal(id, result.Id);
+            Assert.Equal(createdAt, result.CreatedAt);
+            Assert.True(result.ModifiedAt > modifiedAtBefore);
+            Assert.NotNull(fromDb);
+            Assert.Equal(createdAt, fromDb.CreatedAt);
+            Assert.Equal(result.ModifiedAt, fromDb.ModifiedAt);
+        }
+
         //abimeetodid
 
         //loeb andmebaasist kokku kui palju õppejõude seal päriselt on
