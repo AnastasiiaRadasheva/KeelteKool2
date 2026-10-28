@@ -1,0 +1,53 @@
+@model KeelteKool2.Models.Lecturers.LecturerViewModel
+
+@if (ViewBag.ViewType == "details")
+{
+    <h1>Info</h1>
+}
+else
+{
+    <h1>Kustuta</h1>
+}
+
+<div>
+    <h4>Õppejõud</h4>
+    <hr />
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="Id" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LecturerGuid">@Html.DisplayFor(model => model.Id)</span>
+        </div>
+    </dl>
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="FirstName" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LecturerFirstName">@Html.DisplayFor(model => model.FirstName)</span>
+        </div>
+    </dl>
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="LastName" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LecturerLastName">@Html.DisplayFor(model => model.LastName)</span>
+        </div>
+    </dl>
+    <dl class="row">
+        <div class="form-group row">
+            <label asp-for="Qualifications" class="col-sm-2 col-form-label"></label>
+            <span id="DD_LecturerQualifications">@Html.DisplayFor(model => model.Qualifications)</span>
+        </div>
+    </dl>
+    @if (ViewBag.ViewType == "delete")
+    {
+        <form asp-action="DeleteConfirmed" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input id="DeleteDelete_BTN" type="submit" value="Kustuta" class="btn btn-danger" />
+
+            <a id="DeleteCancel_BTN" asp-action="Index" asp-controller="Lecturers" class="btn btn-primary">Tühista</a>
+        </form>
+    }
+    else
+    {
+        <a id="DetailsUpdate_BTN" asp-action="Update" asp-controller="Lecturers" asp-route-id="@Model.Id" class="btn btn-warning">Muuda</a>
+        <a id="DetailsBack_BTN" asp-action="Index" asp-controller="Lecturers" class="btn btn-primary">Tagasi</a>
+    }
+</div>
