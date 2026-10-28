@@ -59,6 +59,7 @@ namespace KeeltekoolV2.UnitTesting
             //kontroll
             Assert.Null(result);
         }
+
         //Details
 
         [Fact]
@@ -193,6 +194,36 @@ namespace KeeltekoolV2.UnitTesting
             Assert.NotNull(fromDb);
             Assert.Equal("Adriana", fromDb.FirstName);
             Assert.Equal(1, await CountLecturersInDb());
+        }
+
+        /// <summary>
+        /// Test kontrollib, et kui õppejõule antakse kaasa kasutajakonto id (UserID), siis see salvestatakse,
+        /// ning kui seda ei anta, siis jääb UserID tühjaks (null). Kontrollitakse ka seda, et andmebaasis
+        /// on peale kahe lisamise täpselt kaks kirjet.
+        /// </summary>
+        [Fact]
+        public async Task Should_SaveUserId_WhenUserIdIsGiven()
+        {
+            //ülesseade
+            LectureDTO withUser = MockLecturerDtoData();
+            withUser.UserID = "kasutaja-id-123";
+            LectureDTO withoutUser = MockLecturerDtoData();
+            withoutUser.UserID = null;
+
+            //tegevus
+            var created1 = await Svc<ILecturersServices>().Create(withUser);
+            var created2 = await Svc<ILecturersServices>().Create(withoutUser);
+            ClearTracking();
+            var fromDb = await Svc<ILecturersServices>().DetailAsync(new LectureDTO { Id = created1?.Id ?? Guid.Empty });
+
+            //kontroll
+            Assert.NotNull(created1);
+            Assert.Equal("kasutaja-id-123", created1.UserID);
+            Assert.NotNull(fromDb);
+            Assert.Equal("kasutaja-id-123", fromDb.UserID);
+            Assert.NotNull(created2);
+            Assert.Null(created2.UserID);
+            Assert.Equal(2, await CountLecturersInDb());
         }
 
         //abimeetodid

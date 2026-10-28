@@ -36,7 +36,8 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             lecturer.FirstName = dto.FirstName.Trim();
             lecturer.LastName = dto.LastName.Trim();
             lecturer.Qualifications = (dto.Qualifications ?? "").Trim();
-            lecturer.UserID = "";
+            //seos kasutajakontoga, võib olla ka tühi
+            lecturer.UserID = dto.UserID;
             lecturer.CreatedAt = DateTime.Now;
             lecturer.ModifiedAt = DateTime.Now;
 
