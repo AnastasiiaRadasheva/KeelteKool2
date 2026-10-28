@@ -302,6 +302,31 @@ namespace KeeltekoolV2.UnitTesting
             Assert.Equal(result.ModifiedAt, fromDb.ModifiedAt);
         }
 
+        /// <summary>
+        /// Test kontrollib, et GetAll tagastab õppejõud järjestatuna: esmalt perenime järgi tähestikuliselt
+        /// ning sama perenime korral eesnime järgi, sõltumata sellest millises järjekorras need lisati.
+        /// </summary>
+        [Fact]
+        public async Task Should_ReturnLecturersSortedByLastNameThenFirstName_WhenGetAll()
+        {
+            //ülesseade - tahtlikult segamini järjekorras
+            await Svc<ILecturersServices>().Create(new LectureDTO { FirstName = "Anastasiia", LastName = "Radasheva", Qualifications = "" });
+            await Svc<ILecturersServices>().Create(new LectureDTO { FirstName = "Oleksandra", LastName = "Ryshniak", Qualifications = "" });
+            await Svc<ILecturersServices>().Create(new LectureDTO { FirstName = "Marina", LastName = "Oleinik", Qualifications = "" });
+            await Svc<ILecturersServices>().Create(new LectureDTO { FirstName = "Mari", LastName = "Speek", Qualifications = "" });
+
+            //tegevus
+            var result = await Svc<ILecturersServices>().GetAll();
+
+            //kontroll
+            Assert.NotNull(result);
+            Assert.Equal(4, result.Count);
+            Assert.Equal("Radasheva Anastasiia", result[0].LastName + " " + result[0].FirstName);
+            Assert.Equal("Ryshniak Oleksandra", result[1].LastName + " " + result[1].FirstName);
+            Assert.Equal("Oleinik Marina", result[2].LastName + " " + result[2].FirstName);
+            Assert.Equal("Speek Mari", result[3].LastName + " " + result[3].FirstName);
+        }
+
         //abimeetodid
 
         //loeb andmebaasist kokku kui palju õppejõude seal päriselt on

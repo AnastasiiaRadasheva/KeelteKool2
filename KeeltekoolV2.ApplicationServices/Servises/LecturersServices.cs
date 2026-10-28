@@ -114,7 +114,11 @@ namespace KeeltekoolV2.ApplicationServices.Servises
 
         public async Task<List<Lecturer>> GetAll()
         {
-            return await _context.Set<Lecturer>().ToListAsync();
+            //järjestame perenime järgi ja sama perenime korral eesnime järgi
+            return await _context.Set<Lecturer>()
+                .OrderBy(x => x.LastName)
+                .ThenBy(x => x.FirstName)
+                .ToListAsync();
         }
     }
 }
