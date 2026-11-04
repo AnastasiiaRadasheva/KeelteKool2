@@ -1,11 +1,8 @@
 ﻿using KeeltekoolV2.Core.Domain;
 using KeeltekoolV2.Core.DTO;
+using KeeltekoolV2.Core.ServiceInterface;
 using KeeltekoolV2.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 
 namespace KeeltekoolV2.ApplicationServices.Servises
 {
@@ -18,21 +15,29 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             _context = context;
         }
 
-        public async Task<Lecturer> Create(LectureDTO dto)
+        public async Task<Lecturer?> Create(LectureDTO dto)
         {
-            if (dto==null)
+            //kontrollitakse kas dto omab mingeid andmeid
+            if (dto == null)
             {
                 return null;
             }
+
+            //kui eesnimi või perenimi on tühi, siis õppejõudu ei lisata
+            if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+            {
+                return null;
+            }
+
             Lecturer lecturer = new Lecturer();
 
             lecturer.Id = Guid.NewGuid();
-
-
-            lecturer.FirstName = dto.FirstName;
-            lecturer.LastName = dto.LastName;
-            lecturer.Qualifications = dto.Qualifications;
-            lecturer.UserID = "";
+            //andmetelt eemaldatakse algusest ja lõpust üleliigsed tühikud
+            lecturer.FirstName = dto.FirstName.Trim();
+            lecturer.LastName = dto.LastName.Trim();
+            lecturer.Qualifications = (dto.Qualifications ?? "").Trim();
+            //seos kasutajakontoga, võib olla ka tühi
+            lecturer.UserID = dto.UserID;
             lecturer.CreatedAt = DateTime.Now;
             lecturer.ModifiedAt = DateTime.Now;
 
@@ -42,14 +47,31 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             return lecturer;
         }
 
-        public async Task<Lecturer> DetailAsync(LectureDTO dto)
+        public async Task<Lecturer?> DetailAsync(LectureDTO dto)
         {
+            if (dto == null)
+            {
+                return null;
+            }
+
             return await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
         }
 
-        public async Task<Lecturer> Update(LectureDTO dto)
+        public async Task<Lecturer?> Update(LectureDTO dto)
         {
+            if (dto == null)
+            {
+                return null;
+            }
+
+            //olemasolevaid andmeid ei tohi tühjade nimedega üle kirjutada
+            if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+            {
+                return null;
+            }
+
+            //leiame andmebaasist olemasoleva õppejõu
             var lecturer = await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
 
@@ -58,9 +80,10 @@ namespace KeeltekoolV2.ApplicationServices.Servises
                 return null;
             }
 
-            lecturer.FirstName = dto.FirstName;
-            lecturer.LastName = dto.LastName;
-            lecturer.Qualifications = dto.Qualifications;
+            //muudame väljad, Id ja CreatedAt jäävad samaks
+            lecturer.FirstName = dto.FirstName.Trim();
+            lecturer.LastName = dto.LastName.Trim();
+            lecturer.Qualifications = (dto.Qualifications ?? "").Trim();
             lecturer.ModifiedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -68,8 +91,13 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             return lecturer;
         }
 
-        public async Task<Lecturer> Delete(LectureDTO dto)
+        public async Task<Lecturer?> Delete(LectureDTO dto)
         {
+            if (dto == null)
+            {
+                return null;
+            }
+
             var lecturer = await _context.Set<Lecturer>()
                 .FirstOrDefaultAsync(x => x.Id == dto.Id);
 
@@ -84,20 +112,13 @@ namespace KeeltekoolV2.ApplicationServices.Servises
             return lecturer;
         }
 
-
-        //Task<Lecturer> ILecturersServices.Delete(LectureDTO dto)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<Lecturer> ILecturersServices.DetailAsync(LectureDTO dto)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<Lecturer> ILecturersServices.Update(LectureDTO dto)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public async Task<List<Lecturer>> GetAll()
+        {
+            //järjestame perenime järgi ja sama perenime korral eesnime järgi
+            return await _context.Set<Lecturer>()
+                .OrderBy(x => x.LastName)
+                .ThenBy(x => x.FirstName)
+                .ToListAsync();
+        }
     }
 }

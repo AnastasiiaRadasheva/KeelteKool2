@@ -1,0 +1,42 @@
+@model IEnumerable<KeelteKool2.Models.Lecturers.LecturerViewModel>
+@{
+    int rownumber = 1;
+    ViewBag.Title = "Õppejõud";
+}
+@*Hiljem: kontrolli kasutaja rolli, peida nupp kui kasutaja ei ole admin või õppejõud*@
+<div>
+    <a id="IndexCreateNewLecturer_BTN" asp-action="Create" asp-controller="Lecturers" class="btn btn-dark">Lisa uus õppejõud</a>
+</div>
+
+<div class="h1">
+    Õppejõud
+</div>
+
+<table id="IndexTable" class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Nr</th>
+            <th scope="col">Eesnimi</th>
+            <th scope="col">Perenimi</th>
+            <th scope="col">Kvalifikatsioonid</th>
+            <th scope="col">Tegevused</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var lecturer in Model)
+        {
+            <tr>
+                <td>@rownumber</td>
+                <td id="IndexTableLecturerFirstName">@lecturer.FirstName</td>
+                <td id="IndexTableLecturerLastName">@lecturer.LastName</td>
+                <td id="IndexTableLecturerQualifications">@lecturer.Qualifications</td>
+                <td id="IndexTableLecturerActions">
+                    <a id="IndexTableLecturerDetails_BTN" asp-action="Details" asp-controller="Lecturers" asp-route-id="@lecturer.Id" class="btn btn-secondary">Andmed</a>
+                    <a id="IndexTableLecturerUpdate_BTN" asp-action="Update" asp-controller="Lecturers" asp-route-id="@lecturer.Id" class="btn btn-warning">Muuda</a>
+                    <a id="IndexTableLecturerDelete_BTN" asp-action="Delete" asp-controller="Lecturers" asp-route-id="@lecturer.Id" class="btn btn-danger">Kustuta</a>
+                </td>
+            </tr>
+            rownumber++;
+        }
+    </tbody>
+</table>
