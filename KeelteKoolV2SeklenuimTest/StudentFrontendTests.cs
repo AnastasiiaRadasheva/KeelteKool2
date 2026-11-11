@@ -1,5 +1,6 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Firefox;
 using Xunit;
 
 namespace KeelteKoolV2SeleniumTesting
@@ -10,112 +11,119 @@ namespace KeelteKoolV2SeleniumTesting
     [TestCaseOrderer("KeelteKoolV2SeleniumTesting.PriorityOrderer", "KeelteKoolV2SeleniumTesting")]
     public class StudentFrontendTests
     {
-        private const string BaseUrl = "http://localhost:5234/";
+        //selle testikäivituse õpilase unikaalne Guid, mida hoitakse õpilase eesnimes
+        public static string thisRunGuid { get; set; } = "";
 
-        //selle testikäivituse õpilase eesnimi (unikaalne Guid) ja andmebaasi id,
-        //mida kasutavad kõik järgnevad testid
-        public static string thisRunFirstName { get; set; } = "";
-        public static string thisRunStudentId { get; set; } = "";
-
-        //andmed, millega õpilane luuakse
-        private const string CreateLastName = "Automaattest";
-        private const string CreateLevel = "B1";
-        //andmed, millega õpilast muudetakse
-        private const string UpdateLastName = "Automaattest-Muudetud";
-        private const string UpdateEmail = "muudetud.selenium@test.ee";
-        private const string UpdateLevel = "C1";
+        //Zen brauser on Firefoxi põhine, seega saab seda juhtida FirefoxDriveriga
+        private const string ZenBrowserPath = @"C:\Program Files\Zen Browser\zen.exe";
 
         /// <summary>
-        /// Sisestab Create/Update vormi väljadesse kaasaantud andmed.
+        /// Puhastab Create/Update vormi kõik andmeväljad meetodile kaasaantud draiveri sessioonis.
         /// </summary>
-        /// <param name="driver">Hetkel kasutatav draiver</param>
-        /// <param name="firstName">Eesnimi, null korral välja ei muudeta</param>
-        /// <param name="lastName">Perenimi</param>
-        /// <param name="email">E-posti aadress</param>
-        /// <param name="level">Keeletase</param>
-        private static void DataEntry_Student(IWebDriver driver, string? firstName, string lastName, string email, string level)
+        /// <param name="driver">Hetkel käsitletav draiver</param>
+        private void DataClear_CreateUpdate(IWebDriver driver)
         {
-            if (firstName != null)
+            IWebElement createEntryFirstName = driver.FindElement(By.Id("CU_Student_FirstName"));
+            createEntryFirstName.Clear();
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Student_LastName"));
+            createEntryLastName.Clear();
+            IWebElement createEntryEmail = driver.FindElement(By.Id("CU_Student_Email"));
+            createEntryEmail.Clear();
+            IWebElement createEntryLanguageLevel = driver.FindElement(By.Id("CU_Student_LanguageLevel"));
+            createEntryLanguageLevel.Clear();
+        }
+
+        /// <summary>
+        /// Puhastab Create/Update vormi andmeväljad, välja arvatud eesnime välja,
+        /// sest eesnimes hoitakse testimiseks vajalikku unikaalset Guidi.
+        /// </summary>
+        /// <param name="driver">Hetkel käsitletav draiver</param>
+        private void DataClear_CreateUpdate_SaveName(IWebDriver driver)
+        {
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Student_LastName"));
+            createEntryLastName.Clear();
+            IWebElement createEntryEmail = driver.FindElement(By.Id("CU_Student_Email"));
+            createEntryEmail.Clear();
+            IWebElement createEntryLanguageLevel = driver.FindElement(By.Id("CU_Student_LanguageLevel"));
+            createEntryLanguageLevel.Clear();
+        }
+
+        /// <summary>
+        /// Meetod mis testimise eesmärgil sisestab õpilase vormi andmed, on võimalik konfigureerida.
+        /// </summary>
+        /// <param name="driver">WebDriver mida hetkel test rakendab</param>
+        /// <param name="isOneOrTwo">Muutuja mis valib kahe erineva andmekomplekti vahel</param>
+        /// <param name="updateName">Muutuja mis ütleb kas eesnime on vaja täita (eesnimes hoitakse unikaalset Guidi)</param>
+        /// <returns>Tagastab eesnimesse pandud Guidi stringi kujul</returns>
+        private static string DataEntry_Student(IWebDriver driver, bool isOneOrTwo = false, bool updateName = true)
+        {
+            Guid generatedId = Guid.NewGuid();
+            if (updateName)
             {
-                driver.FindElement(By.Id("CU_Student_FirstName")).SendKeys(firstName);
+                IWebElement createEntryFirstName = driver.FindElement(By.Id("CU_Student_FirstName"));
+                createEntryFirstName.SendKeys(generatedId.ToString());
             }
-            driver.FindElement(By.Id("CU_Student_LastName")).SendKeys(lastName);
-            driver.FindElement(By.Id("CU_Student_Email")).SendKeys(email);
-            driver.FindElement(By.Id("CU_Student_LanguageLevel")).SendKeys(level);
-        }
 
-        /// <summary>
-        /// Tühjendab vormi väljad peale eesnime, sest eesnimes hoitakse testi jaoks vajalikku unikaalset Guidi.
-        /// </summary>
-        /// <param name="driver">Hetkel kasutatav draiver</param>
-        private static void DataClear_StudentExceptFirstName(IWebDriver driver)
-        {
-            driver.FindElement(By.Id("CU_Student_LastName")).Clear();
-            driver.FindElement(By.Id("CU_Student_Email")).Clear();
-            driver.FindElement(By.Id("CU_Student_LanguageLevel")).Clear();
-        }
-
-        /// <summary>
-        /// Otsib õpilaste tabelist rea, mille eesnimi on kaasaantud väärtus.
-        /// </summary>
-        /// <param name="driver">Hetkel kasutatav draiver (peab olema Index lehel)</param>
-        /// <param name="firstName">Otsitav eesnimi</param>
-        /// <returns>Tabeli rida või null, kui sellist õpilast tabelis ei ole</returns>
-        private static IWebElement? FindStudentRow(IWebDriver driver, string firstName)
-        {
-            var rows = driver.FindElement(By.Id("IndexTable")).FindElements(By.CssSelector("tbody tr"));
-            foreach (var row in rows)
+            if (!isOneOrTwo)
             {
-                if (row.FindElement(By.Id("IndexTableStudentFirstName")).Text == firstName)
-                {
-                    return row;
-                }
+                IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Student_LastName"));
+                createEntryLastName.SendKeys("Seleniumitest");
+                IWebElement createEntryEmail = driver.FindElement(By.Id("CU_Student_Email"));
+                createEntryEmail.SendKeys("selenium.opilane@test.ee");
+                IWebElement createEntryLanguageLevel = driver.FindElement(By.Id("CU_Student_LanguageLevel"));
+                createEntryLanguageLevel.SendKeys("B1");
             }
-            return null;
+            else
+            {
+                IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Student_LastName"));
+                createEntryLastName.SendKeys("Seleniumitest-Muudetud");
+                IWebElement createEntryEmail = driver.FindElement(By.Id("CU_Student_Email"));
+                createEntryEmail.SendKeys("muudetud.opilane@test.ee");
+                IWebElement createEntryLanguageLevel = driver.FindElement(By.Id("CU_Student_LanguageLevel"));
+                createEntryLanguageLevel.SendKeys("C1");
+            }
+            return generatedId.ToString();
         }
 
         /// <summary>
-        /// Loeb kokku, mitu õpilast on Index lehe tabelis.
+        /// Tekitab brauserit juhtiva draiveri: kui arvutis on Zen brauser, kasutatakse FirefoxDriverit
+        /// koos Zeniga, muidu kasutatakse Chrome brauserit.
         /// </summary>
-        private static int CountStudentRows(IWebDriver driver)
+        /// <returns>Brauserit juhtiv draiver</returns>
+        private static IWebDriver CreateDriver()
         {
-            return driver.FindElement(By.Id("IndexTable")).FindElements(By.CssSelector("tbody tr")).Count;
+            //geckodriver (Firefoxi draiver) laetakse Seleniumi poolt kausta %USERPROFILE%\.cache\selenium\geckodriver
+            string geckoFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "selenium", "geckodriver");
+            string? geckoDriver = Directory.Exists(geckoFolder)
+                ? Directory.GetFiles(geckoFolder, "geckodriver.exe", SearchOption.AllDirectories).OrderByDescending(x => x).FirstOrDefault()
+                : null;
+
+            if (File.Exists(ZenBrowserPath) && geckoDriver != null)
+            {
+                FirefoxDriverService service = FirefoxDriverService.CreateDefaultService(Path.GetDirectoryName(geckoDriver));
+                FirefoxOptions options = new FirefoxOptions();
+                options.BinaryLocation = ZenBrowserPath;
+                options.SetPreference("zen.welcome-screen.seen", true); //muidu katab Zeni tervitusaken lehe sisu
+                return new FirefoxDriver(service, options);
+            }
+            return new ChromeDriver();
         }
 
         /// <summary>
-        /// Ülesseade meetod: avab Chrome brauseri, läheb avalehele ja vajutab menüüs lingile "Õpilased".
+        /// Ülesseade meetod mis tekitab draiveri, navigeerib aadressile ja vajutab Õpilaste lingile.
         /// </summary>
-        /// <returns>Draiver, mis on õpilaste nimekirja (Index) lehel</returns>
-        private static IWebDriver TestSetup_NavigateToStudents()
+        /// <returns>Tagastab testisiseselt kasutatava draiveri</returns>
+        private static IWebDriver TestSetup_NavigateToIndex()
         {
-            IWebDriver driver = new ChromeDriver();
+            IWebDriver driver = CreateDriver(); //brauserit juhtiv ja seal tegutsev draiver
             driver.Manage().Window.Maximize(); //suur aken, et footer ei kataks nuppe
             driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5); //ootame, kuni element lehele ilmub
-            driver.Url = BaseUrl;
-            IWebElement studentsLink = driver.FindElement(By.LinkText("Õpilased"));
-            studentsLink.Click();
-            WaitForNewPage(studentsLink);
+            driver.Url = "http://localhost:5234/"; //navigeeritav aadress
+            Thread.Sleep(2000);
+            IWebElement navigateToStudents = driver.FindElement(By.LinkText("Õpilased")); //otsime testitava osa lingi
+            navigateToStudents.Click(); //simuleeritud tegevus elemendiga, antud juhul klikk
+            Thread.Sleep(1000);
             return driver;
-        }
-
-        /// <summary>
-        /// Ootab pärast klikki, kuni vana leht kaob (element muutub "stale") ehk uus leht on laetud.
-        /// </summary>
-        /// <param name="clickedElement">Element, millele just klikiti</param>
-        private static void WaitForNewPage(IWebElement clickedElement)
-        {
-            for (int i = 0; i < 100; i++) //kõige rohkem 10 sekundit
-            {
-                try
-                {
-                    _ = clickedElement.Enabled; //kui vana leht on veel alles, see õnnestub
-                    Thread.Sleep(100);
-                }
-                catch (StaleElementReferenceException)
-                {
-                    return; //vana leht on kadunud
-                }
-            }
         }
     }
 }
