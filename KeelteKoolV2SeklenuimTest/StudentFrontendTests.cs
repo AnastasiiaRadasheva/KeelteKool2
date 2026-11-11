@@ -75,6 +75,61 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// READ test: leiab eelmises testis lisatud õpilase nimekirjast, avab nupuga "Andmed" tema detailvaate
+        /// ja kontrollib, et detailvaates on sama õpilase õiged andmed. Lõpuks vajutab "Tagasi"
+        /// ja kontrollib, et jõuti tagasi nimekirja.
+        /// </summary>
+        [Fact]
+        [Order(6)]
+        public void Should_NavigateToDetailsOfAStudent_WithPreviouslyUniqueData()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableStudentFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableStudentActions"))
+                        .FindElement(By.Id("IndexTableStudentDetails_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            //kogume detailvaate andmed
+            string details_id = driver.FindElement(By.Id("DD_StudentGuid")).Text;
+            string details_firstName = driver.FindElement(By.Id("DD_StudentFirstName")).Text; //omab testimise jaoks vajalikku Guidi
+            string details_lastName = driver.FindElement(By.Id("DD_StudentLastName")).Text;
+            string details_email = driver.FindElement(By.Id("DD_StudentEmail")).Text;
+            string details_level = driver.FindElement(By.Id("DD_StudentLanguageLevel")).Text;
+            string detailsUrl = driver.Url;
+            IWebElement goBack = driver.FindElement(By.Id("DetailsBack_BTN"));
+            goBack.Click();
+            Thread.Sleep(1000);
+            string urlAfterBack = driver.Url;
+            driver.Quit();
+
+            /* kontroll */
+            Assert.True(isObjectFound);                                      //õpilane leiti nimekirjast
+            Assert.True(Guid.TryParse(details_id, out _));                   //detailvaates on korrektne id
+            Assert.Contains("/Students/Details/" + details_id, detailsUrl);  //avati just selle õpilase leht
+            Assert.Equal(thisRunGuid, details_firstName);
+            Assert.Equal("Seleniumitest", details_lastName);
+            Assert.Equal("selenium.opilane@test.ee", details_email);
+            Assert.Equal("B1", details_level);
+            Assert.EndsWith("/Students", urlAfterBack);                      //"Tagasi" viis nimekirja
+        }
+
+        /// <summary>
         /// Puhastab Create/Update vormi kõik andmeväljad meetodile kaasaantud draiveri sessioonis.
         /// </summary>
         /// <param name="driver">Hetkel käsitletav draiver</param>
