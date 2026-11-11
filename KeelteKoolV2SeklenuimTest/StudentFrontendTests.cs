@@ -130,6 +130,84 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// UPDATE test: avab varem lisatud õpilase muutmise vormi, tühjendab väljad (va eesnimi, kus on Guid),
+        /// sisestab teise andmekomplekti ja salvestab. Seejärel avab sama õpilase detailvaate ja kontrollib,
+        /// et seal on uued andmed ning vanu andmeid enam ei ole.
+        /// </summary>
+        [Fact]
+        [Order(7)]
+        public void Should_UpdateDetailsOfUniqueStudent_WithNewData()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableStudentFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableStudentActions"))
+                        .FindElement(By.Id("IndexTableStudentUpdate_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            //vormis peavad enne muutmist olema vanad andmed
+            string oldLastNameInForm = driver.FindElement(By.Id("CU_Student_LastName")).GetDomProperty("value");
+            DataClear_CreateUpdate_SaveName(driver);
+            DataEntry_Student(driver, true, false); //teine andmekomplekt, eesnime ei muuda
+            IWebElement updateClick = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateClick.Click();
+            Thread.Sleep(1000);
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            //otsime õpilase uuesti üles ja avame tema detailvaate
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFoundAfterUpdate = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableStudentFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfterUpdate = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableStudentActions"))
+                        .FindElement(By.Id("IndexTableStudentDetails_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            string details_firstName = driver.FindElement(By.Id("DD_StudentFirstName")).Text;
+            string details_lastName = driver.FindElement(By.Id("DD_StudentLastName")).Text;
+            string details_email = driver.FindElement(By.Id("DD_StudentEmail")).Text;
+            string details_level = driver.FindElement(By.Id("DD_StudentLanguageLevel")).Text;
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                      //muudetav õpilane leiti
+            Assert.True(isObjectFoundAfterUpdate);                           //õpilane on pärast muutmist alles
+            Assert.Equal("Seleniumitest", oldLastNameInForm);                //vormis olid enne vanad andmed
+            Assert.Equal(thisRunGuid, details_firstName);                    //eesnimi (Guid) ei muutunud
+            Assert.Equal("Seleniumitest-Muudetud", details_lastName);        //perenimi muudeti
+            Assert.Equal("muudetud.opilane@test.ee", details_email);         //e-post muudeti
+            Assert.Equal("C1", details_level);                               //keeletase muudeti
+            Assert.NotEqual("selenium.opilane@test.ee", details_email);      //vana e-posti enam ei ole
+        }
+
+        /// <summary>
         /// Puhastab Create/Update vormi kõik andmeväljad meetodile kaasaantud draiveri sessioonis.
         /// </summary>
         /// <param name="driver">Hetkel käsitletav draiver</param>
