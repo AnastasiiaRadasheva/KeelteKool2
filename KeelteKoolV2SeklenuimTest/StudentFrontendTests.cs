@@ -18,6 +18,63 @@ namespace KeelteKoolV2SeleniumTesting
         private const string ZenBrowserPath = @"C:\Program Files\Zen Browser\zen.exe";
 
         /// <summary>
+        /// CREATE test: avab õpilaste nimekirja, vajutab "Lisa uus õpilane", sisestab unikaalse Guidiga
+        /// eesnime ja ülejäänud andmed ning salvestab. Kontrollib, et uus õpilane on nimekirja tabelis
+        /// ja tabelis on täpselt need andmed, mis vormi sisestati.
+        /// </summary>
+        [Fact]
+        [Order(5)]
+        public void Should_NavigateToIndex_AddStudentWithUniqueData_ReturnToIndex()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+
+            /* tegevus */
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewStudent_BTN"));
+            indexCreateButton.Click(); //vajutame lisamise nupule
+            Thread.Sleep(1000);
+
+            string uniqueId = DataEntry_Student(driver); //sisestame andmed vormi
+            thisRunGuid = uniqueId;
+
+            IWebElement createCreateButton = driver.FindElement(By.Id("CU_Create_BTN"));
+            createCreateButton.Click(); //vajutame vormis salvestamise nupule
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            //kogume andmed tabelist
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0); //eemaldame päise rea
+            bool isObjectFound = false;
+            string studentLastNameData = "";
+            string studentEmailData = "";
+            string studentLevelData = "";
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableStudentFirstName")).Text == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    studentLastNameData = row.FindElement(By.Id("IndexTableStudentLastName")).Text;
+                    studentEmailData = row.FindElement(By.Id("IndexTableStudentEmail")).Text;
+                    studentLevelData = row.FindElement(By.Id("IndexTableStudentLanguageLevel")).Text;
+                }
+            }
+            string urlAfterSave = driver.Url;
+            //sulgeme akna
+            Thread.Sleep(500);
+            driver.Quit();
+
+            //assertime
+            Assert.True(isObjectFound);                                      //uus õpilane on tabelis
+            Assert.EndsWith("/Students", urlAfterSave);                      //salvestamise järel suunati nimekirja
+            Assert.Equal("Seleniumitest", studentLastNameData);
+            Assert.Equal("selenium.opilane@test.ee", studentEmailData);
+            Assert.Equal("B1", studentLevelData);
+            Assert.True(Guid.TryParse(thisRunGuid, out _));                  //eesnimes on korrektne Guid
+        }
+
+        /// <summary>
         /// Puhastab Create/Update vormi kõik andmeväljad meetodile kaasaantud draiveri sessioonis.
         /// </summary>
         /// <param name="driver">Hetkel käsitletav draiver</param>
