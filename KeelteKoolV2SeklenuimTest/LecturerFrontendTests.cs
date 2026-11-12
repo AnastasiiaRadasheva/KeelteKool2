@@ -14,6 +14,33 @@ namespace KeelteKoolV2SeleniumTesting
         //eof
 
         /// <summary>
+        /// Puhastab andmeväljad meetodile kaasaantud draiveri sessioonis
+        /// </summary>
+        /// <param name="driver">Hetkel käsitletav draiver</param>
+        private void DataClear_CreateUpdate(IWebDriver driver)
+        {
+            IWebElement createEntryFirstName = driver.FindElement(By.Id("CU_Lecturer_FirstName"));
+            createEntryFirstName.Clear();
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.Clear();
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.Clear();
+        }
+
+        /// <summary>
+        /// Puhastab andmeväljad meetodile kaasaantud draiveri sessioonis
+        /// välja arvatud eesnime väli (eesnimes hoitakse testimiseks vajalikku unikaalset Guidi)
+        /// </summary>
+        /// <param name="driver">Hetkel käsitletav draiver</param>
+        private void DataClear_CreateUpdate_SaveName(IWebDriver driver)
+        {
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.Clear();
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.Clear();
+        }
+
+        /// <summary>
         /// Meetod mis testimise eesmärgil sisestab lehel õppejõu andmeid, on võimalik konfigureerida.
         /// </summary>
         /// <param name="driver">WebDriver mida hetkel test rakendab</param>
