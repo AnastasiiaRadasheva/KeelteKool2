@@ -455,8 +455,11 @@ namespace KeelteKoolV2SeleniumTesting
             string urlAfterBack = driver.Url;
             driver.Quit();
 
+            Assert.Equal(cancelledGuid, firstNameInForm);                    //andmed olid vormi sisestatud
             Assert.EndsWith("/Students", urlAfterBack);                      //"Tagasi" viis nimekirja
+            Assert.Equal(rowsBefore, rowsOfTable.Count);                     //õpilaste arv ei muutunud
             Assert.False(isObjectFound);                                     //sellise Guidiga õpilast ei ole
+            Assert.True(Guid.TryParse(cancelledGuid, out _));                //vormi sisestati korrektne Guid
         }
 
         /// <summary>
