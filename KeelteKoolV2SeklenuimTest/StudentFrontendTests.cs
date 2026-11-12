@@ -369,6 +369,9 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Quit();
 
             Assert.Equal(1, createButtons);                                  //kasutaja jäi lisamise vormile
+            Assert.Contains("ei ole korrektsed", errorText);                 //kuvati veateade
+            Assert.Equal("vale.email.test.ee", emailInForm);                 //sisestatud e-post ei kadunud
+            Assert.DoesNotContain("@", emailInForm);                         //e-post oli tõesti ilma @ märgita
             Assert.False(isObjectFound);                                     //õpilast ei lisatud nimekirja
         }
 
@@ -517,7 +520,7 @@ namespace KeelteKoolV2SeleniumTesting
             string geckoFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "selenium", "geckodriver");
             string? geckoDriver = Directory.Exists(geckoFolder)
                 ? Directory.GetFiles(geckoFolder, "geckodriver.exe", SearchOption.AllDirectories).OrderByDescending(x => x).FirstOrDefault()
-                : null; //kontrollime, 
+                : null;
 
             if (File.Exists(ZenBrowserPath) && geckoDriver != null)
             {
@@ -527,7 +530,7 @@ namespace KeelteKoolV2SeleniumTesting
                 options.SetPreference("zen.welcome-screen.seen", true); //muidu katab Zeni tervitusaken lehe sisu
                 return new FirefoxDriver(service, options);
             }
-            return new ChromeDriver(); //see eeldab, et arvutis on Chrome brauser ja see on PATH keskkonnamuutujas või ChromeDriver on samas kaustas, kus testitav rakendus
+            return new ChromeDriver();
         }
 
         /// <summary>
