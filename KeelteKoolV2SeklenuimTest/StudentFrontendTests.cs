@@ -324,6 +324,55 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// Oma (negatiivne) test: kui e-posti aadressis puudub @ märk, ei tohi õpilast lisada.
+        /// Kontrollib, et kasutaja jääb lisamise vormile, näeb veateadet, sisestatud e-post ei kao
+        /// ja sellise Guidiga õpilast ei teki nimekirja.
+        /// </summary>
+        [Fact]
+        [Order(10)]
+        public void ShouldNot_AddStudent_WhenEmailIsInvalid()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewStudent_BTN"));
+            indexCreateButton.Click();
+            Thread.Sleep(1000);
+
+            /* tegevus */
+            string invalidGuid = DataEntry_Student(driver); //täidame vormi korrektsete andmetega
+            IWebElement emailField = driver.FindElement(By.Id("CU_Student_Email"));
+            emailField.Clear();
+            emailField.SendKeys("vale.email.test.ee"); //asendame e-posti vigasega
+            IWebElement createCreateButton = driver.FindElement(By.Id("CU_Create_BTN"));
+            createCreateButton.Click();
+            Thread.Sleep(1000);
+
+            string errorText = driver.FindElement(By.CssSelector(".validation-summary-errors")).Text;
+            string emailInForm = driver.FindElement(By.Id("CU_Student_Email")).GetDomProperty("value");
+            int createButtons = driver.FindElements(By.Id("CU_Create_BTN")).Count;
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableStudentFirstName")).Text == invalidGuid)
+                {
+                    isObjectFound = true;
+                }
+            }
+            driver.Quit();
+
+            Assert.Equal(1, createButtons);                                  //kasutaja jäi lisamise vormile
+            Assert.False(isObjectFound);                                     //õpilast ei lisatud nimekirja
+        }
+
+        /// <summary>
         /// DELETE test: avab varem lisatud õpilase kustutamise vaate, kontrollib et seal on õige õpilane,
         /// kinnitab kustutamise ja kontrollib, et õpilast ei ole enam nimekirjas ega saa avada tema detailvaadet.
         /// Test käivitatakse viimasena, sest kustutab õpilase, mida teised testid kasutavad.
@@ -468,7 +517,7 @@ namespace KeelteKoolV2SeleniumTesting
             string geckoFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache", "selenium", "geckodriver");
             string? geckoDriver = Directory.Exists(geckoFolder)
                 ? Directory.GetFiles(geckoFolder, "geckodriver.exe", SearchOption.AllDirectories).OrderByDescending(x => x).FirstOrDefault()
-                : null;
+                : null; //kontrollime, 
 
             if (File.Exists(ZenBrowserPath) && geckoDriver != null)
             {
@@ -478,7 +527,7 @@ namespace KeelteKoolV2SeleniumTesting
                 options.SetPreference("zen.welcome-screen.seen", true); //muidu katab Zeni tervitusaken lehe sisu
                 return new FirefoxDriver(service, options);
             }
-            return new ChromeDriver();
+            return new ChromeDriver(); //see eeldab, et arvutis on Chrome brauser ja see on PATH keskkonnamuutujas või ChromeDriver on samas kaustas, kus testitav rakendus
         }
 
         /// <summary>
