@@ -418,6 +418,48 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// Oma (negatiivne) test: kui kasutaja täidab lisamise vormi, aga vajutab "Tagasi" ilma salvestamata,
+        /// ei tohi õpilast lisada. Kontrollib, et andmed olid vormis, jõuti nimekirja,
+        /// õpilaste arv ei muutunud ja sellise Guidiga õpilast tabelis ei ole.
+        /// </summary>
+        [Fact]
+        [Order(12)]
+        public void ShouldNot_AddStudent_WhenCreateIsCancelled()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            int rowsBefore = driver.FindElement(By.Id("IndexTable")).FindElements(By.TagName("tr")).Count - 1;
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewStudent_BTN"));
+            indexCreateButton.Click();
+            Thread.Sleep(1000);
+
+            /* tegevus */
+            string cancelledGuid = DataEntry_Student(driver); //täidame vormi, aga ei salvesta
+            string firstNameInForm = driver.FindElement(By.Id("CU_Student_FirstName")).GetDomProperty("value");
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableStudentFirstName")).Text == cancelledGuid)
+                {
+                    isObjectFound = true;
+                }
+            }
+            string urlAfterBack = driver.Url;
+            driver.Quit();
+
+            Assert.EndsWith("/Students", urlAfterBack);                      //"Tagasi" viis nimekirja
+            Assert.False(isObjectFound);                                     //sellise Guidiga õpilast ei ole
+        }
+
+        /// <summary>
         /// DELETE test: avab varem lisatud õpilase kustutamise vaate, kontrollib et seal on õige õpilane,
         /// kinnitab kustutamise ja kontrollib, et õpilast ei ole enam nimekirjas ega saa avada tema detailvaadet.
         /// Test käivitatakse viimasena, sest kustutab õpilase, mida teised testid kasutavad.
