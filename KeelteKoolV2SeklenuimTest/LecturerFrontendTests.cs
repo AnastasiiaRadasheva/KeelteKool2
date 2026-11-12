@@ -14,6 +14,39 @@ namespace KeelteKoolV2SeleniumTesting
         //eof
 
         /// <summary>
+        /// Meetod mis testimise eesmärgil sisestab lehel õppejõu andmeid, on võimalik konfigureerida.
+        /// </summary>
+        /// <param name="driver">WebDriver mida hetkel test rakendab</param>
+        /// <param name="isOneOrTwo">Muutuja mis valib kahe erineva andmekomplekti vahel</param>
+        /// <param name="updateName">Muutuja mis ütleb kas eesnime on vaja muuta (eesnimes hoitakse testimiseks vajalikku unikaalset Guidi)</param>
+        /// <returns>Tagastab lisatud Guidi stringi kujul mis pandi eesnime välja (Kui on konfigureeritud nii)</returns>
+        private static string DataEntry_Lecturer(IWebDriver driver, bool isOneOrTwo = false, bool updateName = true)
+        {
+            Guid generatedId = Guid.NewGuid();
+            if (updateName)
+            {
+                IWebElement createEntryFirstName = driver.FindElement(By.Id("CU_Lecturer_FirstName"));
+                createEntryFirstName.SendKeys(generatedId.ToString());
+            }
+
+            if (!isOneOrTwo)
+            {
+                IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+                createEntryLastName.SendKeys("Oleinik");
+                IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+                createEntryQualifications.SendKeys("Inglise keel C1, IELTS");
+            }
+            else
+            {
+                IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+                createEntryLastName.SendKeys("Speek");
+                IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+                createEntryQualifications.SendKeys("Saksa keel B2, eksamineerija");
+            }
+            return generatedId.ToString();
+        }
+
+        /// <summary>
         /// Ülesseade meetod mis tekitab draiveri, navigeerib aadressile ja vajutab Õppejõudude lingile.
         /// </summary>
         /// <returns>Tagastab testisiseselt kasutatava draiveri</returns>
