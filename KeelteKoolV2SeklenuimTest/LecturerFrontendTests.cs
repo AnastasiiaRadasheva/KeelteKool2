@@ -14,6 +14,21 @@ namespace KeelteKoolV2SeleniumTesting
         //eof
 
         /// <summary>
+        /// Ülesseade meetod mis tekitab draiveri, navigeerib aadressile ja vajutab Õppejõudude lingile.
+        /// </summary>
+        /// <returns>Tagastab testisiseselt kasutatava draiveri</returns>
+        private static IWebDriver TestSetup_NavigateToIndex()
+        {
+            IWebDriver driver = new ChromeDriver(); //brauserit juhtiv ja seal tegutsev draiver
+            driver.Manage().Window.Maximize(); //suur aken, et footer ei kataks nuppe
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5); //ootame, kuni element lehele ilmub
+            driver.Url = "http://localhost:5234/"; //navigeeritav aadress
+            IWebElement navigateToLecturers = driver.FindElement(By.LinkText("Õppejõud"));//otsime testitava osa lingi
+            navigateToLecturers.Click(); //simuleeritud tegevus elemendiga, antud juhul klikk
+            WaitForNewPage(navigateToLecturers); //ootame, kuni uus leht laeb
+            return driver;
+        }
+        /// <summary>
         /// Ootab, kuni pärast klikki vana leht kaob (element muutub "stale"), ehk uus leht on laadimas/laetud.
         /// </summary>
         /// <param name="clickedElement">Element millele just klikiti</param>
