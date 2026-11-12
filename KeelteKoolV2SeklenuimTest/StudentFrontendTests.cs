@@ -208,6 +208,72 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// DELETE test: avab varem lisatud õpilase kustutamise vaate, kontrollib et seal on õige õpilane,
+        /// kinnitab kustutamise ja kontrollib, et õpilast ei ole enam nimekirjas ega saa avada tema detailvaadet.
+        /// Test käivitatakse viimasena, sest kustutab õpilase, mida teised testid kasutavad.
+        /// </summary>
+        [Fact]
+        [Order(13)]
+        public void Should_DeleteUniqueStudent_FromDeleteView()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableStudentFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableStudentActions"))
+                        .FindElement(By.Id("IndexTableStudentDelete_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            string delete_id = driver.FindElement(By.Id("DD_StudentGuid")).Text;
+            string delete_firstName = driver.FindElement(By.Id("DD_StudentFirstName")).Text;
+            IWebElement clickDelete = driver.FindElement(By.Id("DeleteDelete_BTN"));
+            clickDelete.Click();
+            Thread.Sleep(1000);
+            string urlAfterDelete = driver.Url;
+
+            //kontroll
+            bool isObjectFoundAfterDelete = false;
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableStudentFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfterDelete = true;
+                    break;
+                }
+            }
+            //proovime kustutatud õpilase detailvaadet otse aadressiga avada
+            driver.Url = "http://localhost:5234/Students/Details/" + delete_id;
+            Thread.Sleep(1000);
+            int detailsFieldsFound = driver.FindElements(By.Id("DD_StudentGuid")).Count;
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                      //enne kustutamist oli õpilane olemas
+            Assert.Equal(thisRunGuid, delete_firstName);                     //kustutamise vaates oli õige õpilane
+            Assert.True(Guid.TryParse(delete_id, out _));
+            Assert.EndsWith("/Students", urlAfterDelete);                    //kustutamise järel suunati nimekirja
+            Assert.False(isObjectFoundAfterDelete);                          //õpilast ei ole enam nimekirjas
+            Assert.Equal(0, detailsFieldsFound);                             //kustutatud õpilase detailvaadet ei ole
+        }
+
+        /// <summary>
         /// Puhastab Create/Update vormi kõik andmeväljad meetodile kaasaantud draiveri sessioonis.
         /// </summary>
         /// <param name="driver">Hetkel käsitletav draiver</param>
