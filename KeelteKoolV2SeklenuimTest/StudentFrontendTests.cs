@@ -257,7 +257,11 @@ namespace KeelteKoolV2SeleniumTesting
             /* kontroll */
             Assert.True(isObjectFound);
             Assert.Contains("/Students/Update/" + details_id, formUrl);       //avati sama õpilase muutmise vorm
+            Assert.Equal(1, updateButtons);                                  //vormis on "Muuda" nupp, mitte "Lisa"
             Assert.Equal(thisRunGuid, form_firstName);
+            Assert.Equal(details_lastName, form_lastName);
+            Assert.Equal(details_email, form_email);
+            Assert.Equal(details_level, form_level);
         }
 
         /// <summary>
