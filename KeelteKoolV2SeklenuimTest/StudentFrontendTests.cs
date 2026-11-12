@@ -317,8 +317,10 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Quit();
 
             Assert.True(isObjectFound);                                      //õpilane oli olemas
+            Assert.Equal(1, deleteButtons);                                  //kustutamise vaates oli kinnitusnupp
             Assert.EndsWith("/Students", urlAfterCancel);                    //"Tühista" viis nimekirja
             Assert.True(isObjectFoundAfterCancel);                           //õpilane on endiselt tabelis
+            Assert.Equal(rowsBefore, rowsAfter);                             //õpilaste arv ei muutunud
         }
 
         /// <summary>
