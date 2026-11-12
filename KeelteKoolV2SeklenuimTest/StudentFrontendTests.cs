@@ -376,6 +376,46 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// Oma (negatiivne) test: kui ees- ja perenimi jäetakse tühjaks, ei tohi õpilast lisada.
+        /// Kontrollib, et vorm ei salvestu, mõlema nimevälja juures on veateade
+        /// ja nimekirja ei tule ühtegi uut õpilast.
+        /// </summary>
+        [Fact]
+        [Order(11)]
+        public void ShouldNot_AddStudent_WhenNamesAreEmpty()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            int rowsBefore = driver.FindElement(By.Id("IndexTable")).FindElements(By.TagName("tr")).Count - 1;
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewStudent_BTN"));
+            indexCreateButton.Click();
+            Thread.Sleep(1000);
+
+            /* tegevus */
+            DataEntry_Student(driver, false, false); //eesnime ei täida
+            driver.FindElement(By.Id("CU_Student_LastName")).Clear(); //perenime tühjendame
+            IWebElement createCreateButton = driver.FindElement(By.Id("CU_Create_BTN"));
+            createCreateButton.Click();
+            Thread.Sleep(1000);
+
+            string firstNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='FirstName']")).Text;
+            string lastNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='LastName']")).Text;
+            int createButtons = driver.FindElements(By.Id("CU_Create_BTN")).Count;
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            int rowsAfter = driver.FindElement(By.Id("IndexTable")).FindElements(By.TagName("tr")).Count - 1;
+            string urlAfterBack = driver.Url;
+            driver.Quit();
+
+            Assert.Equal(1, createButtons);                                  //vorm ei salvestunud
+            Assert.False(string.IsNullOrWhiteSpace(firstNameError));         //eesnime juures on veateade
+            Assert.False(string.IsNullOrWhiteSpace(lastNameError));          //perenime juures on veateade
+        }
+
+        /// <summary>
         /// DELETE test: avab varem lisatud õpilase kustutamise vaate, kontrollib et seal on õige õpilane,
         /// kinnitab kustutamise ja kontrollib, et õpilast ei ole enam nimekirjas ega saa avada tema detailvaadet.
         /// Test käivitatakse viimasena, sest kustutab õpilase, mida teised testid kasutavad.
