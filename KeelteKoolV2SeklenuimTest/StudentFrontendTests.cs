@@ -207,6 +207,59 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.NotEqual("selenium.opilane@test.ee", details_email);      //vana e-posti enam ei ole
         }
 
+        // ---------------- ise välja mõeldud kasutajaliidese testid ----------------
+
+        /// <summary>
+        /// Oma test: detailvaates olev nupp "Muuda" peab avama sama õpilase muutmise vormi,
+        /// kus väljad on täidetud täpselt nende andmetega, mida detailvaade näitas.
+        /// </summary>
+        [Fact]
+        [Order(8)]
+        public void Should_OpenUpdateForm_FromDetailsView_WithSameStudentData()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableStudentFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableStudentActions"))
+                        .FindElement(By.Id("IndexTableStudentDetails_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            string details_id = driver.FindElement(By.Id("DD_StudentGuid")).Text;
+            string details_lastName = driver.FindElement(By.Id("DD_StudentLastName")).Text;
+            string details_email = driver.FindElement(By.Id("DD_StudentEmail")).Text;
+            string details_level = driver.FindElement(By.Id("DD_StudentLanguageLevel")).Text;
+
+            /* tegevus */
+            IWebElement detailsUpdate = driver.FindElement(By.Id("DetailsUpdate_BTN"));
+            detailsUpdate.Click();
+            Thread.Sleep(1000);
+            string form_firstName = driver.FindElement(By.Id("CU_Student_FirstName")).GetDomProperty("value");
+            string form_lastName = driver.FindElement(By.Id("CU_Student_LastName")).GetDomProperty("value");
+            string form_email = driver.FindElement(By.Id("CU_Student_Email")).GetDomProperty("value");
+            string form_level = driver.FindElement(By.Id("CU_Student_LanguageLevel")).GetDomProperty("value");
+            string formUrl = driver.Url;
+            int updateButtons = driver.FindElements(By.Id("CU_Update_BTN")).Count;
+            driver.Quit();
+
+            /* kontroll */
+            Assert.True(isObjectFound);
+            Assert.Contains("/Students/Update/" + details_id, formUrl);       //avati sama õpilase muutmise vorm
+            Assert.Equal(thisRunGuid, form_firstName);
+        }
+
         /// <summary>
         /// DELETE test: avab varem lisatud õpilase kustutamise vaate, kontrollib et seal on õige õpilane,
         /// kinnitab kustutamise ja kontrollib, et õpilast ei ole enam nimekirjas ega saa avada tema detailvaadet.
