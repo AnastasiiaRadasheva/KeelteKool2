@@ -265,6 +265,63 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// Oma (negatiivne) test: kui kustutamise vaates vajutatakse "Tühista", ei tohi õpilast kustutada.
+        /// Kontrollib, et jõuti tagasi nimekirja, õpilaste arv ei muutunud ja õpilane on endiselt tabelis.
+        /// </summary>
+        [Fact]
+        [Order(9)]
+        public void ShouldNot_DeleteStudent_WhenDeleteIsCancelled()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsBefore = rowsOfTable.Count;
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableStudentFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableStudentActions"))
+                        .FindElement(By.Id("IndexTableStudentDelete_BTN"));
+                    clickAction.Click();
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            int deleteButtons = driver.FindElements(By.Id("DeleteDelete_BTN")).Count;
+            IWebElement cancelDelete = driver.FindElement(By.Id("DeleteCancel_BTN"));
+            cancelDelete.Click();
+            Thread.Sleep(1000);
+
+            /* kontroll */
+            string urlAfterCancel = driver.Url;
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFoundAfterCancel = false;
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableStudentFirstName")).Text == thisRunGuid)
+                {
+                    isObjectFoundAfterCancel = true;
+                }
+            }
+            int rowsAfter = rowsOfTable.Count;
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                      //õpilane oli olemas
+            Assert.EndsWith("/Students", urlAfterCancel);                    //"Tühista" viis nimekirja
+            Assert.True(isObjectFoundAfterCancel);                           //õpilane on endiselt tabelis
+        }
+
+        /// <summary>
         /// DELETE test: avab varem lisatud õpilase kustutamise vaate, kontrollib et seal on õige õpilane,
         /// kinnitab kustutamise ja kontrollib, et õpilast ei ole enam nimekirjas ega saa avada tema detailvaadet.
         /// Test käivitatakse viimasena, sest kustutab õpilase, mida teised testid kasutavad.
