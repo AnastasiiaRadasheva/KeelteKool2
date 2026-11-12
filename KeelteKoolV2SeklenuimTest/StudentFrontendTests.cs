@@ -413,6 +413,8 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.Equal(1, createButtons);                                  //vorm ei salvestunud
             Assert.False(string.IsNullOrWhiteSpace(firstNameError));         //eesnime juures on veateade
             Assert.False(string.IsNullOrWhiteSpace(lastNameError));          //perenime juures on veateade
+            Assert.EndsWith("/Students", urlAfterBack);                      //"Tagasi" viis nimekirja
+            Assert.Equal(rowsBefore, rowsAfter);                             //uut õpilast ei lisatud
         }
 
         /// <summary>
