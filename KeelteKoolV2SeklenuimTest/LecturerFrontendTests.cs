@@ -151,6 +151,7 @@ namespace KeelteKoolV2SeleniumTesting
             var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
             List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
             rowsOfTable.RemoveAt(0);
+            int rowsBefore = rowsOfTable.Count;
             bool isObjectFound = false;
 
             /* tegevus */
@@ -170,8 +171,10 @@ namespace KeelteKoolV2SeleniumTesting
             }
             Thread.Sleep(500);
             //vormis peavad enne muutmist olema vanad andmed
+            string updateHeading = driver.FindElement(By.TagName("h1")).Text;
             string updateUrl = driver.Url;
             string oldLastNameInForm = driver.FindElement(By.Id("CU_Lecturer_LastName")).GetDomProperty("value");
+            string oldQualificationsInForm = driver.FindElement(By.Id("CU_Lecturer_Qualifications")).GetDomProperty("value");
             DataClear_CreateUpdate_SaveName(driver);
             DataEntry_Lecturer(driver, true, false); //teine andmekomplekt, eesnime ei muuda
             IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
@@ -185,6 +188,7 @@ namespace KeelteKoolV2SeleniumTesting
             tableOfIndex = driver.FindElement(By.Id("IndexTable"));
             rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
             rowsOfTable.RemoveAt(0);
+            int rowsAfter = rowsOfTable.Count;
             bool isObjectFoundAfterUpdate = false;
             foreach (var row in rowsOfTable)
             {
@@ -208,8 +212,11 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Quit();
 
             Assert.True(isObjectFound);                                    //muudetav õppejõud leiti
+            Assert.Equal("Muuda õppejõudu", updateHeading);                //avati muutmise (mitte lisamise) vorm
             Assert.Equal("Oleinik", oldLastNameInForm);                       //vormis olid enne vanad andmed
+            Assert.Equal("Inglise keel C1, IELTS", oldQualificationsInForm);
             Assert.EndsWith("/Lecturers", urlAfterUpdate);                 //salvestamise järel suunati nimekirja
+            Assert.Equal(rowsBefore, rowsAfter);                           //muutmine ei lisanud uut rida
             Assert.True(isObjectFoundAfterUpdate);                         //õppejõud on pärast muutmist alles
             Assert.Contains("/Lecturers/Update/" + details_id, updateUrl); //muudeti sama id-ga õppejõudu
             Assert.Equal(thisRunGuid, details_firstName);                  //eesnimi (Guid) ei muutunud
