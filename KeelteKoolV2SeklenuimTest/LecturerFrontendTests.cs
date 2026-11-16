@@ -240,6 +240,7 @@ namespace KeelteKoolV2SeleniumTesting
             var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
             List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
             rowsOfTable.RemoveAt(0);
+            int rowsBefore = rowsOfTable.Count;
             bool isObjectFound = false;
 
             /* tegevus */
@@ -258,8 +259,10 @@ namespace KeelteKoolV2SeleniumTesting
                 }
             }
             Thread.Sleep(1000);
+            string delete_heading = driver.FindElement(By.TagName("h1")).Text;
             string delete_id = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
             string delete_firstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text;
+            string deleteUrl = driver.Url;
             IWebElement clickDelete = driver.FindElement(By.Id("DeleteDelete_BTN"));
             clickDelete.Click();
             WaitForNewPage(clickDelete); //ootame, kuni uus leht laeb
@@ -271,6 +274,7 @@ namespace KeelteKoolV2SeleniumTesting
             tableOfIndex = driver.FindElement(By.Id("IndexTable"));
             rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
             rowsOfTable.RemoveAt(0);
+            int rowsAfter = rowsOfTable.Count;
             foreach (var row in rowsOfTable)
             {
                 var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
@@ -283,8 +287,11 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Quit();
 
             Assert.True(isObjectFound);                                    //enne kustutamist oli õppejõud olemas
+            Assert.Equal("Kustuta", delete_heading);                       //avati kustutamise vaade
+            Assert.Contains("/Lecturers/Delete/" + delete_id, deleteUrl);
             Assert.Equal(thisRunGuid, delete_firstName);                   //kustutamise vaates oli õige õppejõud
             Assert.EndsWith("/Lecturers", urlAfterDelete);                 //kustutamise järel suunati nimekirja
+            Assert.Equal(rowsBefore - 1, rowsAfter);                       //tabelist kadus täpselt üks rida
             Assert.False(isObjectFoundAfterDelete);                        //õppejõudu ei ole enam nimekirjas
         }
 
