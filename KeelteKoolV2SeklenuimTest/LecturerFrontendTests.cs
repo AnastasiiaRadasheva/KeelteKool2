@@ -41,8 +41,11 @@ namespace KeelteKoolV2SeleniumTesting
 
             //kogume vormi andmed pärast salvestamise proovimist
             string urlAfterSave = driver.Url;
+            string heading = driver.FindElement(By.TagName("h1")).Text;
             string firstNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='FirstName']")).Text;
             string lastNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='LastName']")).Text;
+            string qualificationsInForm = driver.FindElement(By.Id("CU_Lecturer_Qualifications")).GetDomProperty("value");
+            int createButtons = driver.FindElements(By.Id("CU_Create_BTN")).Count;
 
             //läheme "Tagasi" nupuga nimekirja ja loeme read uuesti üle
             IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
@@ -66,8 +69,11 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Quit();
 
             Assert.Contains("/Lecturers/Create", urlAfterSave);            //jäädi lisamise vormile
+            Assert.Equal("Lisa uus õppejõud", heading);                    //vorm on endiselt lisamise vorm
+            Assert.Equal(1, createButtons);                                //vormis on endiselt "Lisa" nupp
             Assert.Equal("Eesnimi on kohustuslik", firstNameError);        //eesnime veateade on näha
             Assert.Equal("Perenimi on kohustuslik", lastNameError);        //perenime veateade on näha
+            Assert.Equal("Ainult kvalifikatsioon", qualificationsInForm);  //kasutaja sisestatud tekst ei kadunud
             Assert.Equal(rowsBefore, rowsAfter);                           //õppejõudude arv ei muutunud
             Assert.False(isEmptyLecturerFound);                            //nimedeta õppejõudu tabelis ei ole
         }
