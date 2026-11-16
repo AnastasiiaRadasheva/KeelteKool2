@@ -12,6 +12,67 @@ namespace KeelteKoolV2SeleniumTesting
         public static string thisRunGuid { get; set; } = "";
 
         /// <summary>
+        /// Oma (negatiivne) test: kui lisamise vormis jäetakse eesnimi ja perenimi tühjaks, ei tohi õppejõudu lisada.
+        /// Kontrollib, et jäädakse lisamise vormile, mõlema välja juures on veateade, kvalifikatsioonide
+        /// väljale kirjutatud tekst ei kao ära ning õppejõudude tabelisse ei tekkinud uut rida.
+        /// </summary>
+        [Fact]
+        [Order(1)]
+        public void ShouldNot_AddLecturer_WhenNamesAreEmpty()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsBefore = rowsOfTable.Count; //mitu õppejõudu on enne proovimist
+
+            /* tegevus */
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewLecturer_BTN"));
+            indexCreateButton.Click(); //vajutame lisamise nupule
+            WaitForNewPage(indexCreateButton); //ootame, kuni uus leht laeb
+            //eesnimi ja perenimi jäävad tühjaks, täidame ainult kvalifikatsioonid
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.SendKeys("Ainult kvalifikatsioon");
+            IWebElement CreateCreateButton = driver.FindElement(By.Id("CU_Create_BTN"));
+            CreateCreateButton.Click(); //vajutame vormis salvestamise nupule
+            WaitForNewPage(CreateCreateButton); //ootame, kuni vorm uuesti laeb
+            Thread.Sleep(500);
+
+            //kogume vormi andmed pärast salvestamise proovimist
+            string urlAfterSave = driver.Url;
+            string firstNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='FirstName']")).Text;
+            string lastNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='LastName']")).Text;
+
+            //läheme "Tagasi" nupuga nimekirja ja loeme read uuesti üle
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+
+            /* kontroll */
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsAfter = rowsOfTable.Count;
+            bool isEmptyLecturerFound = false;
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableLecturerQualifications")).Text == "Ainult kvalifikatsioon")
+                {
+                    isEmptyLecturerFound = true;
+                }
+            }
+            driver.Quit();
+
+            Assert.Contains("/Lecturers/Create", urlAfterSave);            //jäädi lisamise vormile
+            Assert.Equal("Eesnimi on kohustuslik", firstNameError);        //eesnime veateade on näha
+            Assert.Equal("Perenimi on kohustuslik", lastNameError);        //perenime veateade on näha
+            Assert.Equal(rowsBefore, rowsAfter);                           //õppejõudude arv ei muutunud
+            Assert.False(isEmptyLecturerFound);                            //nimedeta õppejõudu tabelis ei ole
+        }
+
+        /// <summary>
         /// CREATE test: avab õppejõudude nimekirja, vajutab "Lisa uus õppejõud", sisestab eesnimeks unikaalse
         /// Guidi ning perenime ja kvalifikatsioonid ja salvestab. Kontrollib, et suunati tagasi nimekirja,
         /// tabelis on täpselt üks uus rida ja selles reas on just need andmed, mis vormi sisestati.
