@@ -136,6 +136,88 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.EndsWith("/Lecturers", urlAfterBack);                   //"Tagasi" viis nimekirja
         }
 
+        /// <summary>
+        /// UPDATE test: avab varem lisatud õppejõu muutmise vormi, kontrollib et vormis on vanad andmed,
+        /// tühjendab väljad (va eesnimi, kus on Guid), sisestab teise andmekomplekti ja salvestab.
+        /// Seejärel avab sama õppejõu detailvaate ja kontrollib, et seal on uued andmed, vanu andmeid
+        /// enam ei ole ja õppejõu id jäi samaks.
+        /// </summary>
+        [Fact]
+        [Order(4)]
+        public void Should_UpdateDetailsOfUniqueLecturer_WithNewData()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            //vormis peavad enne muutmist olema vanad andmed
+            string updateUrl = driver.Url;
+            string oldLastNameInForm = driver.FindElement(By.Id("CU_Lecturer_LastName")).GetDomProperty("value");
+            DataClear_CreateUpdate_SaveName(driver);
+            DataEntry_Lecturer(driver, true, false); //teine andmekomplekt, eesnime ei muuda
+            IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateclick.Click();
+            WaitForNewPage(updateclick); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+            string urlAfterUpdate = driver.Url;
+
+            /* kontroll */
+            //otsime õppejõu uuesti üles ja avame tema detailvaate
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFoundAfterUpdate = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfterUpdate = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string details_id = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
+            string details_firstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text; //unikaalne id
+            string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            string details_qualifications = driver.FindElement(By.Id("DD_LecturerQualifications")).Text;
+            Thread.Sleep(1000);
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                    //muudetav õppejõud leiti
+            Assert.Equal("Oleinik", oldLastNameInForm);                       //vormis olid enne vanad andmed
+            Assert.EndsWith("/Lecturers", urlAfterUpdate);                 //salvestamise järel suunati nimekirja
+            Assert.True(isObjectFoundAfterUpdate);                         //õppejõud on pärast muutmist alles
+            Assert.Contains("/Lecturers/Update/" + details_id, updateUrl); //muudeti sama id-ga õppejõudu
+            Assert.Equal(thisRunGuid, details_firstName);                  //eesnimi (Guid) ei muutunud
+            Assert.Equal("Speek", details_lastName);                        //perenimi muudeti
+            Assert.Equal("Saksa keel B2, eksamineerija", details_qualifications); //kvalifikatsioonid muudeti
+            Assert.NotEqual("Tamm", details_lastName);                     //vana perenime enam ei ole
+        }
+
         //eof
 
         /// <summary>
