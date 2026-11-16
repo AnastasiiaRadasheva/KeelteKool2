@@ -107,11 +107,14 @@ namespace KeelteKoolV2SeleniumTesting
             }
             Thread.Sleep(1000);
             //kogume detailvaate andmed
+            string details_heading = driver.FindElement(By.TagName("h1")).Text;
             string details_id = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
             string details_firstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text; //omab testimise jaoks vajalikku id-d
             string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
             string details_qualifications = driver.FindElement(By.Id("DD_LecturerQualifications")).Text;
             string detailsUrl = driver.Url;
+            int updateButtons = driver.FindElements(By.Id("DetailsUpdate_BTN")).Count;
+            int deleteButtons = driver.FindElements(By.Id("DeleteDelete_BTN")).Count;
             IWebElement goBack = driver.FindElement(By.Id("DetailsBack_BTN"));
             goBack.Click();
             WaitForNewPage(goBack); //ootame, kuni uus leht laeb
@@ -121,12 +124,15 @@ namespace KeelteKoolV2SeleniumTesting
 
             /* Kontroll */
             Assert.True(isObjectFound);                                    //õppejõud leiti nimekirjast
+            Assert.Equal("Info", details_heading);                         //avati detailvaade, mitte kustutamise vaade
             Assert.NotEmpty(details_id);
             Assert.True(Guid.TryParse(details_id, out _));                 //detailvaates on korrektne id
             Assert.Contains("/Lecturers/Details/" + details_id, detailsUrl); //avati just selle õppejõu leht
             Assert.Equal(thisRunGuid, details_firstName);
             Assert.Equal("Oleinik", details_lastName);
             Assert.Equal("Inglise keel C1, IELTS", details_qualifications);
+            Assert.Equal(1, updateButtons);                                //detailvaates on "Muuda" nupp
+            Assert.Equal(0, deleteButtons);                                //detailvaates ei ole kustutamise nuppu
             Assert.EndsWith("/Lecturers", urlAfterBack);                   //"Tagasi" viis nimekirja
         }
 
