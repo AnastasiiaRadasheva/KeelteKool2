@@ -222,7 +222,70 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.Equal(thisRunGuid, details_firstName);                  //eesnimi (Guid) ei muutunud
             Assert.Equal("Speek", details_lastName);                        //perenimi muudeti
             Assert.Equal("Saksa keel B2, eksamineerija", details_qualifications); //kvalifikatsioonid muudeti
-            Assert.NotEqual("Tamm", details_lastName);                     //vana perenime enam ei ole
+            Assert.NotEqual("Oleinik", details_lastName);                     //vana perenime enam ei ole
+        }
+
+        /// <summary>
+        /// DELETE test: avab varem lisatud õppejõu kustutamise vaate, kontrollib et seal on õige õppejõud
+        /// ja kustutamise nupp, kinnitab kustutamise ja kontrollib, et suunati nimekirja, tabelist kadus
+        /// täpselt üks rida ja seda õppejõudu ei ole enam nimekirjas.
+        /// Test käivitatakse viimasena, sest kustutab õppejõu, mida teised testid kasutavad.
+        /// </summary>
+        [Fact]
+        [Order(10)]
+        public void Should_DeleteUniqueLecturer_FromDeleteView()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDelete_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            string delete_id = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
+            string delete_firstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text;
+            IWebElement clickDelete = driver.FindElement(By.Id("DeleteDelete_BTN"));
+            clickDelete.Click();
+            WaitForNewPage(clickDelete); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+            string urlAfterDelete = driver.Url;
+
+            //kontroll
+            bool isObjectFoundAfterDelete = false;
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfterDelete = true;
+                    break;
+                }
+            }
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                    //enne kustutamist oli õppejõud olemas
+            Assert.Equal(thisRunGuid, delete_firstName);                   //kustutamise vaates oli õige õppejõud
+            Assert.EndsWith("/Lecturers", urlAfterDelete);                 //kustutamise järel suunati nimekirja
+            Assert.False(isObjectFoundAfterDelete);                        //õppejõudu ei ole enam nimekirjas
         }
 
         //eof
