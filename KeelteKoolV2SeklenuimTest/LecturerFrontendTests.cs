@@ -292,6 +292,82 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.NotEqual("Oleinik", details_lastName);                     //vana perenime enam ei ole
         }
 
+        // ---------------- ise välja mõeldud kasutajaliidese testid ----------------
+
+        /// <summary>
+        /// Oma test: kui muutmise vormis andmeid muudetakse, aga lahkutakse nupuga "Tagasi" ilma salvestamata,
+        /// ei tohi õppejõu andmed muutuda. Kontrollib, et "Tagasi" viis nimekirja ning nii tabelis kui ka
+        /// detailvaates on endiselt vanad andmed, mitte vormi kirjutatud uued andmed.
+        /// </summary>
+        [Fact]
+        [Order(5)]
+        public void ShouldNot_ChangeLecturer_WhenUpdateFormIsLeftWithBackButton()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.Clear();
+            createEntryLastName.SendKeys("Salvestamata");
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.Clear();
+            createEntryQualifications.SendKeys("Seda ei tohi salvestada");
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN")); //salvestamise asemel "Tagasi"
+            goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+            string urlAfterBack = driver.Url;
+
+            /* kontroll */
+            //loeme tabelist õppejõu andmed ja avame tema detailvaate
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            string tableLastName = "";
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    tableLastName = row.FindElement(By.Id("IndexTableLecturerLastName")).Text;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                    //õppejõud leiti
+            Assert.EndsWith("/Lecturers", urlAfterBack);                   //"Tagasi" viis nimekirja
+            Assert.Equal("Speek", tableLastName);                           //tabelis on vana perenimi
+            Assert.Equal("Speek", details_lastName);                        //detailvaates on vana perenimi
+            Assert.NotEqual("Salvestamata", details_lastName);             //salvestamata väärtust ei ole
+        }
+
         /// <summary>
         /// DELETE test: avab varem lisatud õppejõu kustutamise vaate, kontrollib et seal on õige õppejõud
         /// ja kustutamise nupp, kinnitab kustutamise ja kontrollib, et suunati nimekirja, tabelist kadus
