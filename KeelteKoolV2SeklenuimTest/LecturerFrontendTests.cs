@@ -74,6 +74,62 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.True(Guid.TryParse(thisRunGuid, out _));                //eesnimes on korrektne Guid
         }
 
+        /// <summary>
+        /// READ test: leiab eelmises testis lisatud õppejõu nimekirjast, avab nupuga "Andmed" tema detailvaate
+        /// ja kontrollib, et avati just selle õppejõu leht ja seal on õiged andmed. Detailvaates peavad olema
+        /// nupud "Muuda" ja "Tagasi", kuid mitte kustutamise nupp. Lõpuks viib "Tagasi" nimekirja.
+        /// </summary>
+        [Fact]
+        [Order(3)]
+        public void Should_NavigateToDetailsOfALecturer_WithPreviouslyUniqueData()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            //kogume detailvaate andmed
+            string details_id = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
+            string details_firstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text; //omab testimise jaoks vajalikku id-d
+            string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            string details_qualifications = driver.FindElement(By.Id("DD_LecturerQualifications")).Text;
+            string detailsUrl = driver.Url;
+            IWebElement goBack = driver.FindElement(By.Id("DetailsBack_BTN"));
+            goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000);
+            string urlAfterBack = driver.Url;
+            driver.Quit();
+
+            /* Kontroll */
+            Assert.True(isObjectFound);                                    //õppejõud leiti nimekirjast
+            Assert.NotEmpty(details_id);
+            Assert.True(Guid.TryParse(details_id, out _));                 //detailvaates on korrektne id
+            Assert.Contains("/Lecturers/Details/" + details_id, detailsUrl); //avati just selle õppejõu leht
+            Assert.Equal(thisRunGuid, details_firstName);
+            Assert.Equal("Oleinik", details_lastName);
+            Assert.Equal("Inglise keel C1, IELTS", details_qualifications);
+            Assert.EndsWith("/Lecturers", urlAfterBack);                   //"Tagasi" viis nimekirja
+        }
+
         //eof
 
         /// <summary>
