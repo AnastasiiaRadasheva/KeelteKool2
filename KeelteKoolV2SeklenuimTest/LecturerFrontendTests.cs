@@ -578,6 +578,59 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// Oma (negatiivne) test: olemasoleva õppejõu detailvaade avaneb otse aadressiga, aga olematu Guidiga
+        /// aadressid (Details, Update, Delete) ei tohi näidata ühtegi õppejõu andmevälja ega vormi.
+        /// Nii kontrollitakse, et vale id-ga ei saa võõraid või tühje andmeid vaadata, muuta ega kustutada.
+        /// </summary>
+        [Fact]
+        [Order(9)]
+        public void ShouldNot_ShowLecturerPages_ForNonExistingId()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string existingId = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
+            string fakeId = Guid.NewGuid().ToString(); //sellist õppejõudu andmebaasis ei ole
+
+            /* tegevus */
+            //kontrolliks avame olemasoleva õppejõu detailvaate otse aadressiga
+            driver.Url = "http://localhost:5234/Lecturers/Details/" + existingId;
+            Thread.Sleep(1000);
+            int existingDetailsFields = driver.FindElements(By.Id("DD_LecturerGuid")).Count;
+            string existingFirstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text;
+
+            //proovime olematu id-ga lehti avada
+            driver.Url = "http://localhost:5234/Lecturers/Details/" + fakeId;
+            Thread.Sleep(1000);
+            int fakeDetailsFields = driver.FindElements(By.Id("DD_LecturerGuid")).Count;
+            driver.Quit();
+
+            /* kontroll */
+            Assert.True(isObjectFound);
+            Assert.NotEqual(existingId, fakeId);
+            Assert.Equal(1, existingDetailsFields);                        //olemasoleva õppejõu leht avaneb
+            Assert.Equal(thisRunGuid, existingFirstName);
+            Assert.Equal(0, fakeDetailsFields);                            //olematu õppejõu detailvaadet ei ole
+        }
+
+        /// <summary>
         /// DELETE test: avab varem lisatud õppejõu kustutamise vaate, kontrollib et seal on õige õppejõud
         /// ja kustutamise nupp, kinnitab kustutamise ja kontrollib, et suunati nimekirja, tabelist kadus
         /// täpselt üks rida ja seda õppejõudu ei ole enam nimekirjas.
