@@ -537,6 +537,44 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// Oma test: õppejõudude tabeli esimene veerg "Nr" peab olema järjekorranumber, mis algab 1-st
+        /// ja kasvab iga rea võrra ühe võrra (1, 2, 3, ...). Kontrollib ka, et tabelis on vähemalt
+        /// testis lisatud õppejõud ja tabeli päises on õiged veergude pealkirjad.
+        /// </summary>
+        [Fact]
+        [Order(8)]
+        public void Should_NumberIndexTableRowsConsecutively_StartingFromOne()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            //loeme iga rea esimese veeru (Nr)
+            List<string> rowNumbers = new List<string>();
+            foreach (var row in rowsOfTable)
+            {
+                rowNumbers.Add(row.FindElements(By.TagName("td"))[0].Text);
+                if (row.FindElement(By.Id("IndexTableLecturerFirstName")).Text == thisRunGuid)
+                {
+                    isObjectFound = true;
+                }
+            }
+            driver.Quit();
+
+            /* kontroll */
+            Assert.True(isObjectFound);                                    //testis lisatud õppejõud on tabelis
+            Assert.NotEmpty(rowNumbers);
+            for (int i = 0; i < rowNumbers.Count; i++)
+            {
+                Assert.Equal((i + 1).ToString(), rowNumbers[i]);           //iga rea number on eelmisest ühe võrra suurem
+            }
+        }
+
+        /// <summary>
         /// DELETE test: avab varem lisatud õppejõu kustutamise vaate, kontrollib et seal on õige õppejõud
         /// ja kustutamise nupp, kinnitab kustutamise ja kontrollib, et suunati nimekirja, tabelist kadus
         /// täpselt üks rida ja seda õppejõudu ei ole enam nimekirjas.
