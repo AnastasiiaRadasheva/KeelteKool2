@@ -459,6 +459,79 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// Oma test: kui muutmise vormis kirjutatakse perenime ja kvalifikatsioonide algusesse ja lõppu tühikud,
+        /// peab rakendus need salvestamisel eemaldama. Kontrollib uuesti avatud muutmise vormi väljade
+        /// tegelikku väärtust (value), sest seal on tühikud näha, ning ka detailvaate andmeid.
+        /// </summary>
+        [Fact]
+        [Order(7)]
+        public void Should_TrimSpaces_FromLastNameAndQualifications_WhenUpdated()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            DataClear_CreateUpdate_SaveName(driver);
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.SendKeys("   Speek-Trimmitud   ");
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.SendKeys("   Prantsuse keel A2   ");
+            IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateclick.Click();
+            WaitForNewPage(updateclick); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+
+            /* kontroll */
+            //avame uuesti muutmise vormi, kus väljade väärtustes on tühikud näha
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFoundAfter = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfter = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string form_lastName = driver.FindElement(By.Id("CU_Lecturer_LastName")).GetDomProperty("value");
+            string form_qualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications")).GetDomProperty("value");
+            Thread.Sleep(500);
+            driver.Quit();
+
+            Assert.True(isObjectFound);
+            Assert.True(isObjectFoundAfter);                               //õppejõud on pärast salvestamist alles
+            Assert.Equal("Speek-Trimmitud", form_lastName);                 //perenimelt eemaldati tühikud
+            Assert.Equal("Prantsuse keel A2", form_qualifications);        //kvalifikatsioonidelt eemaldati tühikud
+        }
+
+        /// <summary>
         /// DELETE test: avab varem lisatud õppejõu kustutamise vaate, kontrollib et seal on õige õppejõud
         /// ja kustutamise nupp, kinnitab kustutamise ja kontrollib, et suunati nimekirja, tabelist kadus
         /// täpselt üks rida ja seda õppejõudu ei ole enam nimekirjas.
