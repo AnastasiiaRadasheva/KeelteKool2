@@ -376,6 +376,83 @@ namespace KeelteKoolV2SeleniumTesting
         }
 
         /// <summary>
+        /// Oma (negatiivne) test: kui muutmise vormis kustutatakse perenimi ära ja vajutatakse "Muuda",
+        /// ei tohi andmeid salvestada. Kontrollib, et jäädakse muutmise vormile, perenime juures on veateade,
+        /// eesnimi (Guid) on vormis alles ning õppejõu andmed detailvaates ei muutunud.
+        /// </summary>
+        [Fact]
+        [Order(6)]
+        public void ShouldNot_UpdateLecturer_WhenLastNameIsCleared()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.Clear(); //perenimi jääb tühjaks
+            IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateclick.Click();
+            WaitForNewPage(updateclick); //ootame, kuni vorm uuesti laeb
+            Thread.Sleep(500);
+
+            //kogume vormi andmed pärast salvestamise proovimist
+            string urlAfterSave = driver.Url;
+            string lastNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='LastName']")).Text;
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+
+            /* kontroll */
+            //otsime õppejõu üles ja avame tema detailvaate
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFoundAfter = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfter = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                    //õppejõud leiti
+            Assert.Contains("/Lecturers/Update", urlAfterSave);            //jäädi muutmise vormile
+            Assert.Equal("Perenimi on kohustuslik", lastNameError);        //perenime veateade on näha
+            Assert.True(isObjectFoundAfter);                               //õppejõud on alles
+            Assert.Equal("Speek", details_lastName);                        //perenimi ei muutunud tühjaks
+        }
+
+        /// <summary>
         /// DELETE test: avab varem lisatud õppejõu kustutamise vaate, kontrollib et seal on õige õppejõud
         /// ja kustutamise nupp, kinnitab kustutamise ja kontrollib, et suunati nimekirja, tabelist kadus
         /// täpselt üks rida ja seda õppejõudu ei ole enam nimekirjas.
