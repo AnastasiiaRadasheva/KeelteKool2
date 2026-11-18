@@ -332,6 +332,7 @@ namespace KeelteKoolV2SeleniumTesting
             IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
             createEntryQualifications.Clear();
             createEntryQualifications.SendKeys("Seda ei tohi salvestada");
+            string lastNameInFormBeforeBack = createEntryLastName.GetDomProperty("value");
             IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN")); //salvestamise asemel "Tagasi"
             goBack.Click();
             WaitForNewPage(goBack); //ootame, kuni uus leht laeb
@@ -344,12 +345,14 @@ namespace KeelteKoolV2SeleniumTesting
             rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
             rowsOfTable.RemoveAt(0);
             string tableLastName = "";
+            string tableQualifications = "";
             foreach (var row in rowsOfTable)
             {
                 var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
                 if (nameElement == thisRunGuid)
                 {
                     tableLastName = row.FindElement(By.Id("IndexTableLecturerLastName")).Text;
+                    tableQualifications = row.FindElement(By.Id("IndexTableLecturerQualifications")).Text;
                     var clickAction = row
                         .FindElement(By.Id("IndexTableLecturerActions"))
                         .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
@@ -359,12 +362,16 @@ namespace KeelteKoolV2SeleniumTesting
                 }
             }
             string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            string details_qualifications = driver.FindElement(By.Id("DD_LecturerQualifications")).Text;
             driver.Quit();
 
             Assert.True(isObjectFound);                                    //õppejõud leiti
+            Assert.Equal("Salvestamata", lastNameInFormBeforeBack);        //vormis oli tõesti uus väärtus
             Assert.EndsWith("/Lecturers", urlAfterBack);                   //"Tagasi" viis nimekirja
             Assert.Equal("Speek", tableLastName);                           //tabelis on vana perenimi
+            Assert.Equal("Saksa keel B2, eksamineerija", tableQualifications);
             Assert.Equal("Speek", details_lastName);                        //detailvaates on vana perenimi
+            Assert.Equal("Saksa keel B2, eksamineerija", details_qualifications);
             Assert.NotEqual("Salvestamata", details_lastName);             //salvestamata väärtust ei ole
         }
 
