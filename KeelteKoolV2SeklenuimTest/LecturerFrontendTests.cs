@@ -620,6 +620,12 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Url = "http://localhost:5234/Lecturers/Details/" + fakeId;
             Thread.Sleep(1000);
             int fakeDetailsFields = driver.FindElements(By.Id("DD_LecturerGuid")).Count;
+            driver.Url = "http://localhost:5234/Lecturers/Update/" + fakeId;
+            Thread.Sleep(1000);
+            int fakeUpdateFields = driver.FindElements(By.Id("CU_Lecturer_FirstName")).Count;
+            driver.Url = "http://localhost:5234/Lecturers/Delete/" + fakeId;
+            Thread.Sleep(1000);
+            int fakeDeleteButtons = driver.FindElements(By.Id("DeleteDelete_BTN")).Count;
             driver.Quit();
 
             /* kontroll */
@@ -628,6 +634,8 @@ namespace KeelteKoolV2SeleniumTesting
             Assert.Equal(1, existingDetailsFields);                        //olemasoleva õppejõu leht avaneb
             Assert.Equal(thisRunGuid, existingFirstName);
             Assert.Equal(0, fakeDetailsFields);                            //olematu õppejõu detailvaadet ei ole
+            Assert.Equal(0, fakeUpdateFields);                             //olematu õppejõu muutmise vormi ei ole
+            Assert.Equal(0, fakeDeleteButtons);                            //olematut õppejõudu ei saa kustutada
         }
 
         /// <summary>
