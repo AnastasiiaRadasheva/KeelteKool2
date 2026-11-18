@@ -553,6 +553,8 @@ namespace KeelteKoolV2SeleniumTesting
             bool isObjectFound = false;
 
             /* tegevus */
+            //loeme päise veergude pealkirjad
+            List<string> headers = tableOfIndex.FindElements(By.TagName("th")).Select(x => x.Text).ToList();
             //loeme iga rea esimese veeru (Nr)
             List<string> rowNumbers = new List<string>();
             foreach (var row in rowsOfTable)
@@ -566,6 +568,7 @@ namespace KeelteKoolV2SeleniumTesting
             driver.Quit();
 
             /* kontroll */
+            Assert.Equal(new List<string> { "Nr", "Eesnimi", "Perenimi", "Kvalifikatsioonid", "Tegevused" }, headers);
             Assert.True(isObjectFound);                                    //testis lisatud õppejõud on tabelis
             Assert.NotEmpty(rowNumbers);
             for (int i = 0; i < rowNumbers.Count; i++)
