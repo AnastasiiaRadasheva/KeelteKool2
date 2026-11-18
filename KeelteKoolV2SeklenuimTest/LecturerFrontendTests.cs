@@ -495,6 +495,7 @@ namespace KeelteKoolV2SeleniumTesting
             createEntryLastName.SendKeys("   Speek-Trimmitud   ");
             IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
             createEntryQualifications.SendKeys("   Prantsuse keel A2   ");
+            string lastNameBeforeSave = createEntryLastName.GetDomProperty("value");
             IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
             updateclick.Click();
             WaitForNewPage(updateclick); //ootame, kuni uus leht laeb
@@ -520,15 +521,19 @@ namespace KeelteKoolV2SeleniumTesting
                     break;
                 }
             }
+            string form_firstName = driver.FindElement(By.Id("CU_Lecturer_FirstName")).GetDomProperty("value");
             string form_lastName = driver.FindElement(By.Id("CU_Lecturer_LastName")).GetDomProperty("value");
             string form_qualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications")).GetDomProperty("value");
             Thread.Sleep(500);
             driver.Quit();
 
             Assert.True(isObjectFound);
+            Assert.Equal("   Speek-Trimmitud   ", lastNameBeforeSave);      //enne salvestamist olid tühikud vormis olemas
             Assert.True(isObjectFoundAfter);                               //õppejõud on pärast salvestamist alles
+            Assert.Equal(thisRunGuid, form_firstName);                     //eesnime ei muudetud
             Assert.Equal("Speek-Trimmitud", form_lastName);                 //perenimelt eemaldati tühikud
             Assert.Equal("Prantsuse keel A2", form_qualifications);        //kvalifikatsioonidelt eemaldati tühikud
+            Assert.False(form_lastName.StartsWith(" ") || form_lastName.EndsWith(" "));
         }
 
         /// <summary>
