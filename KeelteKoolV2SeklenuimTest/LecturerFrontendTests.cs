@@ -416,7 +416,10 @@ namespace KeelteKoolV2SeleniumTesting
 
             //kogume vormi andmed pärast salvestamise proovimist
             string urlAfterSave = driver.Url;
+            string heading = driver.FindElement(By.TagName("h1")).Text;
             string lastNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='LastName']")).Text;
+            string firstNameInForm = driver.FindElement(By.Id("CU_Lecturer_FirstName")).GetDomProperty("value");
+            int updateButtons = driver.FindElements(By.Id("CU_Update_BTN")).Count;
             IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
             goBack.Click();
             WaitForNewPage(goBack); //ootame, kuni uus leht laeb
@@ -447,7 +450,10 @@ namespace KeelteKoolV2SeleniumTesting
 
             Assert.True(isObjectFound);                                    //õppejõud leiti
             Assert.Contains("/Lecturers/Update", urlAfterSave);            //jäädi muutmise vormile
+            Assert.Equal("Muuda õppejõudu", heading);
+            Assert.Equal(1, updateButtons);                                //vormis on endiselt "Muuda" nupp
             Assert.Equal("Perenimi on kohustuslik", lastNameError);        //perenime veateade on näha
+            Assert.Equal(thisRunGuid, firstNameInForm);                    //eesnimi jäi vormi alles
             Assert.True(isObjectFoundAfter);                               //õppejõud on alles
             Assert.Equal("Speek", details_lastName);                        //perenimi ei muutunud tühjaks
         }
