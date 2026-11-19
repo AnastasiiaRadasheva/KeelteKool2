@@ -1,0 +1,808 @@
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using Xunit;
+
+namespace KeelteKoolV2SeleniumTesting
+{
+    //Õppejõudude (Lecturers) kasutajaliidese testid. Testid käivitatakse kindlas järjekorras (Order),
+    //sest Create test loob õppejõu, keda järgmised testid vaatavad, muudavad ja viimane test kustutab.
+    [TestCaseOrderer("KeelteKoolV2SeleniumTesting.PriorityOrderer", "KeelteKoolV2SeleniumTesting")]
+    public class LecturerFrontendTests
+    {
+        public static string thisRunGuid { get; set; } = "";
+
+        /// <summary>
+        /// Oma (negatiivne) test: kui lisamise vormis jäetakse eesnimi ja perenimi tühjaks, ei tohi õppejõudu lisada.
+        /// Kontrollib, et jäädakse lisamise vormile, mõlema välja juures on veateade, kvalifikatsioonide
+        /// väljale kirjutatud tekst ei kao ära ning õppejõudude tabelisse ei tekkinud uut rida.
+        /// </summary>
+        [Fact]
+        [Order(1)]
+        public void ShouldNot_AddLecturer_WhenNamesAreEmpty()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsBefore = rowsOfTable.Count; //mitu õppejõudu on enne proovimist
+
+            /* tegevus */
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewLecturer_BTN"));
+            indexCreateButton.Click(); //vajutame lisamise nupule
+            WaitForNewPage(indexCreateButton); //ootame, kuni uus leht laeb
+            //eesnimi ja perenimi jäävad tühjaks, täidame ainult kvalifikatsioonid
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.SendKeys("Ainult kvalifikatsioon");
+            IWebElement CreateCreateButton = driver.FindElement(By.Id("CU_Create_BTN"));
+            CreateCreateButton.Click(); //vajutame vormis salvestamise nupule
+            WaitForNewPage(CreateCreateButton); //ootame, kuni vorm uuesti laeb
+            Thread.Sleep(500);
+
+            //kogume vormi andmed pärast salvestamise proovimist
+            string urlAfterSave = driver.Url;
+            string heading = driver.FindElement(By.TagName("h1")).Text;
+            string firstNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='FirstName']")).Text;
+            string lastNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='LastName']")).Text;
+            string qualificationsInForm = driver.FindElement(By.Id("CU_Lecturer_Qualifications")).GetDomProperty("value");
+            int createButtons = driver.FindElements(By.Id("CU_Create_BTN")).Count;
+
+            //läheme "Tagasi" nupuga nimekirja ja loeme read uuesti üle
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+
+            /* kontroll */
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsAfter = rowsOfTable.Count;
+            bool isEmptyLecturerFound = false;
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableLecturerQualifications")).Text == "Ainult kvalifikatsioon")
+                {
+                    isEmptyLecturerFound = true;
+                }
+            }
+            driver.Quit();
+
+            Assert.Contains("/Lecturers/Create", urlAfterSave);            //jäädi lisamise vormile
+            Assert.Equal("Lisa uus õppejõud", heading);                    //vorm on endiselt lisamise vorm
+            Assert.Equal(1, createButtons);                                //vormis on endiselt "Lisa" nupp
+            Assert.Equal("Eesnimi on kohustuslik", firstNameError);        //eesnime veateade on näha
+            Assert.Equal("Perenimi on kohustuslik", lastNameError);        //perenime veateade on näha
+            Assert.Equal("Ainult kvalifikatsioon", qualificationsInForm);  //kasutaja sisestatud tekst ei kadunud
+            Assert.Equal(rowsBefore, rowsAfter);                           //õppejõudude arv ei muutunud
+            Assert.False(isEmptyLecturerFound);                            //nimedeta õppejõudu tabelis ei ole
+        }
+
+        /// <summary>
+        /// CREATE test: avab õppejõudude nimekirja, vajutab "Lisa uus õppejõud", sisestab eesnimeks unikaalse
+        /// Guidi ning perenime ja kvalifikatsioonid ja salvestab. Kontrollib, et suunati tagasi nimekirja,
+        /// tabelis on täpselt üks uus rida ja selles reas on just need andmed, mis vormi sisestati.
+        /// </summary>
+        [Fact]
+        [Order(2)]
+        public void Should_NavigateToIndex_AddLecturerWithUniqueData_ReturnToIndex()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsBefore = rowsOfTable.Count;
+
+            /* tegevus */
+            IWebElement indexCreateButton = driver.FindElement(By.Id("IndexCreateNewLecturer_BTN"));
+            indexCreateButton.Click(); //vajutame lisamise nupule
+            WaitForNewPage(indexCreateButton); //ootame, kuni uus leht laeb
+            string createHeading = driver.FindElement(By.TagName("h1")).Text;
+
+            string uniqueId = DataEntry_Lecturer(driver); //sisestame andmed vormi
+            thisRunGuid = uniqueId;
+
+            IWebElement CreateCreateButton = driver.FindElement(By.Id("CU_Create_BTN"));
+            CreateCreateButton.Click(); //vajutame vormis salvestamise nupule
+            WaitForNewPage(CreateCreateButton); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+
+            /* kontroll */
+
+            //kogume andmed
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsAfter = rowsOfTable.Count;
+            int foundCount = 0;
+            string LecturerLastNameData = "";
+            string LecturerQualificationsData = "";
+            foreach (var row in rowsOfTable)
+            {
+                if (row.FindElement(By.Id("IndexTableLecturerFirstName")).Text == thisRunGuid)
+                {
+                    foundCount++;
+                    LecturerLastNameData = row.FindElement(By.Id("IndexTableLecturerLastName")).Text;
+                    LecturerQualificationsData = row.FindElement(By.Id("IndexTableLecturerQualifications")).Text;
+                }
+            }
+            string urlAfterSave = driver.Url;
+            //sulgeme akna
+            Thread.Sleep(500);
+            driver.Quit();
+            //assertime
+            Assert.Equal("Lisa uus õppejõud", createHeading);              //avati lisamise vorm
+            Assert.EndsWith("/Lecturers", urlAfterSave);                   //salvestamise järel suunati nimekirja
+            Assert.Equal(1, foundCount);                                   //uus õppejõud on tabelis täpselt üks kord
+            Assert.Equal(rowsBefore + 1, rowsAfter);                       //tabelisse lisandus üks rida
+            Assert.Equal("Oleinik", LecturerLastNameData);
+            Assert.Equal("Inglise keel C1, IELTS", LecturerQualificationsData);
+            Assert.True(Guid.TryParse(thisRunGuid, out _));                //eesnimes on korrektne Guid
+        }
+
+        /// <summary>
+        /// READ test: leiab eelmises testis lisatud õppejõu nimekirjast, avab nupuga "Andmed" tema detailvaate
+        /// ja kontrollib, et avati just selle õppejõu leht ja seal on õiged andmed. Detailvaates peavad olema
+        /// nupud "Muuda" ja "Tagasi", kuid mitte kustutamise nupp. Lõpuks viib "Tagasi" nimekirja.
+        /// </summary>
+        [Fact]
+        [Order(3)]
+        public void Should_NavigateToDetailsOfALecturer_WithPreviouslyUniqueData()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            //kogume detailvaate andmed
+            string details_heading = driver.FindElement(By.TagName("h1")).Text;
+            string details_id = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
+            string details_firstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text; //omab testimise jaoks vajalikku id-d
+            string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            string details_qualifications = driver.FindElement(By.Id("DD_LecturerQualifications")).Text;
+            string detailsUrl = driver.Url;
+            int updateButtons = driver.FindElements(By.Id("DetailsUpdate_BTN")).Count;
+            int deleteButtons = driver.FindElements(By.Id("DeleteDelete_BTN")).Count;
+            IWebElement goBack = driver.FindElement(By.Id("DetailsBack_BTN"));
+            goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000);
+            string urlAfterBack = driver.Url;
+            driver.Quit();
+
+            /* Kontroll */
+            Assert.True(isObjectFound);                                    //õppejõud leiti nimekirjast
+            Assert.Equal("Info", details_heading);                         //avati detailvaade, mitte kustutamise vaade
+            Assert.NotEmpty(details_id);
+            Assert.True(Guid.TryParse(details_id, out _));                 //detailvaates on korrektne id
+            Assert.Contains("/Lecturers/Details/" + details_id, detailsUrl); //avati just selle õppejõu leht
+            Assert.Equal(thisRunGuid, details_firstName);
+            Assert.Equal("Oleinik", details_lastName);
+            Assert.Equal("Inglise keel C1, IELTS", details_qualifications);
+            Assert.Equal(1, updateButtons);                                //detailvaates on "Muuda" nupp
+            Assert.Equal(0, deleteButtons);                                //detailvaates ei ole kustutamise nuppu
+            Assert.EndsWith("/Lecturers", urlAfterBack);                   //"Tagasi" viis nimekirja
+        }
+
+        /// <summary>
+        /// UPDATE test: avab varem lisatud õppejõu muutmise vormi, kontrollib et vormis on vanad andmed,
+        /// tühjendab väljad (va eesnimi, kus on Guid), sisestab teise andmekomplekti ja salvestab.
+        /// Seejärel avab sama õppejõu detailvaate ja kontrollib, et seal on uued andmed, vanu andmeid
+        /// enam ei ole ja õppejõu id jäi samaks.
+        /// </summary>
+        [Fact]
+        [Order(4)]
+        public void Should_UpdateDetailsOfUniqueLecturer_WithNewData()
+        {
+            /* Ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsBefore = rowsOfTable.Count;
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            //vormis peavad enne muutmist olema vanad andmed
+            string updateHeading = driver.FindElement(By.TagName("h1")).Text;
+            string updateUrl = driver.Url;
+            string oldLastNameInForm = driver.FindElement(By.Id("CU_Lecturer_LastName")).GetDomProperty("value");
+            string oldQualificationsInForm = driver.FindElement(By.Id("CU_Lecturer_Qualifications")).GetDomProperty("value");
+            DataClear_CreateUpdate_SaveName(driver);
+            DataEntry_Lecturer(driver, true, false); //teine andmekomplekt, eesnime ei muuda
+            IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateclick.Click();
+            WaitForNewPage(updateclick); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+            string urlAfterUpdate = driver.Url;
+
+            /* kontroll */
+            //otsime õppejõu uuesti üles ja avame tema detailvaate
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsAfter = rowsOfTable.Count;
+            bool isObjectFoundAfterUpdate = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfterUpdate = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string details_id = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
+            string details_firstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text; //unikaalne id
+            string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            string details_qualifications = driver.FindElement(By.Id("DD_LecturerQualifications")).Text;
+            Thread.Sleep(1000);
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                    //muudetav õppejõud leiti
+            Assert.Equal("Muuda õppejõudu", updateHeading);                //avati muutmise (mitte lisamise) vorm
+            Assert.Equal("Oleinik", oldLastNameInForm);                       //vormis olid enne vanad andmed
+            Assert.Equal("Inglise keel C1, IELTS", oldQualificationsInForm);
+            Assert.EndsWith("/Lecturers", urlAfterUpdate);                 //salvestamise järel suunati nimekirja
+            Assert.Equal(rowsBefore, rowsAfter);                           //muutmine ei lisanud uut rida
+            Assert.True(isObjectFoundAfterUpdate);                         //õppejõud on pärast muutmist alles
+            Assert.Contains("/Lecturers/Update/" + details_id, updateUrl); //muudeti sama id-ga õppejõudu
+            Assert.Equal(thisRunGuid, details_firstName);                  //eesnimi (Guid) ei muutunud
+            Assert.Equal("Speek", details_lastName);                        //perenimi muudeti
+            Assert.Equal("Saksa keel B2, eksamineerija", details_qualifications); //kvalifikatsioonid muudeti
+            Assert.NotEqual("Oleinik", details_lastName);                     //vana perenime enam ei ole
+        }
+
+        // ---------------- ise välja mõeldud kasutajaliidese testid ----------------
+
+        /// <summary>
+        /// Oma test: kui muutmise vormis andmeid muudetakse, aga lahkutakse nupuga "Tagasi" ilma salvestamata,
+        /// ei tohi õppejõu andmed muutuda. Kontrollib, et "Tagasi" viis nimekirja ning nii tabelis kui ka
+        /// detailvaates on endiselt vanad andmed, mitte vormi kirjutatud uued andmed.
+        /// </summary>
+        [Fact]
+        [Order(5)]
+        public void ShouldNot_ChangeLecturer_WhenUpdateFormIsLeftWithBackButton()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.Clear();
+            createEntryLastName.SendKeys("Salvestamata");
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.Clear();
+            createEntryQualifications.SendKeys("Seda ei tohi salvestada");
+            string lastNameInFormBeforeBack = createEntryLastName.GetDomProperty("value");
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN")); //salvestamise asemel "Tagasi"
+            goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+            string urlAfterBack = driver.Url;
+
+            /* kontroll */
+            //loeme tabelist õppejõu andmed ja avame tema detailvaate
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            string tableLastName = "";
+            string tableQualifications = "";
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    tableLastName = row.FindElement(By.Id("IndexTableLecturerLastName")).Text;
+                    tableQualifications = row.FindElement(By.Id("IndexTableLecturerQualifications")).Text;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            string details_qualifications = driver.FindElement(By.Id("DD_LecturerQualifications")).Text;
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                    //õppejõud leiti
+            Assert.Equal("Salvestamata", lastNameInFormBeforeBack);        //vormis oli tõesti uus väärtus
+            Assert.EndsWith("/Lecturers", urlAfterBack);                   //"Tagasi" viis nimekirja
+            Assert.Equal("Speek", tableLastName);                           //tabelis on vana perenimi
+            Assert.Equal("Saksa keel B2, eksamineerija", tableQualifications);
+            Assert.Equal("Speek", details_lastName);                        //detailvaates on vana perenimi
+            Assert.Equal("Saksa keel B2, eksamineerija", details_qualifications);
+            Assert.NotEqual("Salvestamata", details_lastName);             //salvestamata väärtust ei ole
+        }
+
+        /// <summary>
+        /// Oma (negatiivne) test: kui muutmise vormis kustutatakse perenimi ära ja vajutatakse "Muuda",
+        /// ei tohi andmeid salvestada. Kontrollib, et jäädakse muutmise vormile, perenime juures on veateade,
+        /// eesnimi (Guid) on vormis alles ning õppejõu andmed detailvaates ei muutunud.
+        /// </summary>
+        [Fact]
+        [Order(6)]
+        public void ShouldNot_UpdateLecturer_WhenLastNameIsCleared()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.Clear(); //perenimi jääb tühjaks
+            IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateclick.Click();
+            WaitForNewPage(updateclick); //ootame, kuni vorm uuesti laeb
+            Thread.Sleep(500);
+
+            //kogume vormi andmed pärast salvestamise proovimist
+            string urlAfterSave = driver.Url;
+            string heading = driver.FindElement(By.TagName("h1")).Text;
+            string lastNameError = driver.FindElement(By.CssSelector("span[data-valmsg-for='LastName']")).Text;
+            string firstNameInForm = driver.FindElement(By.Id("CU_Lecturer_FirstName")).GetDomProperty("value");
+            int updateButtons = driver.FindElements(By.Id("CU_Update_BTN")).Count;
+            IWebElement goBack = driver.FindElement(By.Id("CU_Cancel_BTN"));
+            goBack.Click();
+            WaitForNewPage(goBack); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+
+            /* kontroll */
+            //otsime õppejõu üles ja avame tema detailvaate
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFoundAfter = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfter = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string details_lastName = driver.FindElement(By.Id("DD_LecturerLastName")).Text;
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                    //õppejõud leiti
+            Assert.Contains("/Lecturers/Update", urlAfterSave);            //jäädi muutmise vormile
+            Assert.Equal("Muuda õppejõudu", heading);
+            Assert.Equal(1, updateButtons);                                //vormis on endiselt "Muuda" nupp
+            Assert.Equal("Perenimi on kohustuslik", lastNameError);        //perenime veateade on näha
+            Assert.Equal(thisRunGuid, firstNameInForm);                    //eesnimi jäi vormi alles
+            Assert.True(isObjectFoundAfter);                               //õppejõud on alles
+            Assert.Equal("Speek", details_lastName);                        //perenimi ei muutunud tühjaks
+        }
+
+        /// <summary>
+        /// Oma test: kui muutmise vormis kirjutatakse perenime ja kvalifikatsioonide algusesse ja lõppu tühikud,
+        /// peab rakendus need salvestamisel eemaldama. Kontrollib uuesti avatud muutmise vormi väljade
+        /// tegelikku väärtust (value), sest seal on tühikud näha, ning ka detailvaate andmeid.
+        /// </summary>
+        [Fact]
+        [Order(7)]
+        public void Should_TrimSpaces_FromLastNameAndQualifications_WhenUpdated()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(500);
+            DataClear_CreateUpdate_SaveName(driver);
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.SendKeys("   Speek-Trimmitud   ");
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.SendKeys("   Prantsuse keel A2   ");
+            string lastNameBeforeSave = createEntryLastName.GetDomProperty("value");
+            IWebElement updateclick = driver.FindElement(By.Id("CU_Update_BTN"));
+            updateclick.Click();
+            WaitForNewPage(updateclick); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+
+            /* kontroll */
+            //avame uuesti muutmise vormi, kus väljade väärtustes on tühikud näha
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFoundAfter = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfter = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerUpdate_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string form_firstName = driver.FindElement(By.Id("CU_Lecturer_FirstName")).GetDomProperty("value");
+            string form_lastName = driver.FindElement(By.Id("CU_Lecturer_LastName")).GetDomProperty("value");
+            string form_qualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications")).GetDomProperty("value");
+            Thread.Sleep(500);
+            driver.Quit();
+
+            Assert.True(isObjectFound);
+            Assert.Equal("   Speek-Trimmitud   ", lastNameBeforeSave);      //enne salvestamist olid tühikud vormis olemas
+            Assert.True(isObjectFoundAfter);                               //õppejõud on pärast salvestamist alles
+            Assert.Equal(thisRunGuid, form_firstName);                     //eesnime ei muudetud
+            Assert.Equal("Speek-Trimmitud", form_lastName);                 //perenimelt eemaldati tühikud
+            Assert.Equal("Prantsuse keel A2", form_qualifications);        //kvalifikatsioonidelt eemaldati tühikud
+            Assert.False(form_lastName.StartsWith(" ") || form_lastName.EndsWith(" "));
+        }
+
+        /// <summary>
+        /// Oma test: õppejõudude tabeli esimene veerg "Nr" peab olema järjekorranumber, mis algab 1-st
+        /// ja kasvab iga rea võrra ühe võrra (1, 2, 3, ...). Kontrollib ka, et tabelis on vähemalt
+        /// testis lisatud õppejõud ja tabeli päises on õiged veergude pealkirjad.
+        /// </summary>
+        [Fact]
+        [Order(8)]
+        public void Should_NumberIndexTableRowsConsecutively_StartingFromOne()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+
+            /* tegevus */
+            //loeme päise veergude pealkirjad
+            List<string> headers = tableOfIndex.FindElements(By.TagName("th")).Select(x => x.Text).ToList();
+            //loeme iga rea esimese veeru (Nr)
+            List<string> rowNumbers = new List<string>();
+            foreach (var row in rowsOfTable)
+            {
+                rowNumbers.Add(row.FindElements(By.TagName("td"))[0].Text);
+                if (row.FindElement(By.Id("IndexTableLecturerFirstName")).Text == thisRunGuid)
+                {
+                    isObjectFound = true;
+                }
+            }
+            driver.Quit();
+
+            /* kontroll */
+            Assert.Equal(new List<string> { "Nr", "Eesnimi", "Perenimi", "Kvalifikatsioonid", "Tegevused" }, headers);
+            Assert.True(isObjectFound);                                    //testis lisatud õppejõud on tabelis
+            Assert.NotEmpty(rowNumbers);
+            for (int i = 0; i < rowNumbers.Count; i++)
+            {
+                Assert.Equal((i + 1).ToString(), rowNumbers[i]);           //iga rea number on eelmisest ühe võrra suurem
+            }
+        }
+
+        /// <summary>
+        /// Oma (negatiivne) test: olemasoleva õppejõu detailvaade avaneb otse aadressiga, aga olematu Guidiga
+        /// aadressid (Details, Update, Delete) ei tohi näidata ühtegi õppejõu andmevälja ega vormi.
+        /// Nii kontrollitakse, et vale id-ga ei saa võõraid või tühje andmeid vaadata, muuta ega kustutada.
+        /// </summary>
+        [Fact]
+        [Order(9)]
+        public void ShouldNot_ShowLecturerPages_ForNonExistingId()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            bool isObjectFound = false;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDetails_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            string existingId = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
+            string fakeId = Guid.NewGuid().ToString(); //sellist õppejõudu andmebaasis ei ole
+
+            /* tegevus */
+            //kontrolliks avame olemasoleva õppejõu detailvaate otse aadressiga
+            driver.Url = "http://localhost:5234/Lecturers/Details/" + existingId;
+            Thread.Sleep(1000);
+            int existingDetailsFields = driver.FindElements(By.Id("DD_LecturerGuid")).Count;
+            string existingFirstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text;
+
+            //proovime olematu id-ga lehti avada
+            driver.Url = "http://localhost:5234/Lecturers/Details/" + fakeId;
+            Thread.Sleep(1000);
+            int fakeDetailsFields = driver.FindElements(By.Id("DD_LecturerGuid")).Count;
+            driver.Url = "http://localhost:5234/Lecturers/Update/" + fakeId;
+            Thread.Sleep(1000);
+            int fakeUpdateFields = driver.FindElements(By.Id("CU_Lecturer_FirstName")).Count;
+            driver.Url = "http://localhost:5234/Lecturers/Delete/" + fakeId;
+            Thread.Sleep(1000);
+            int fakeDeleteButtons = driver.FindElements(By.Id("DeleteDelete_BTN")).Count;
+            driver.Quit();
+
+            /* kontroll */
+            Assert.True(isObjectFound);
+            Assert.NotEqual(existingId, fakeId);
+            Assert.Equal(1, existingDetailsFields);                        //olemasoleva õppejõu leht avaneb
+            Assert.Equal(thisRunGuid, existingFirstName);
+            Assert.Equal(0, fakeDetailsFields);                            //olematu õppejõu detailvaadet ei ole
+            Assert.Equal(0, fakeUpdateFields);                             //olematu õppejõu muutmise vormi ei ole
+            Assert.Equal(0, fakeDeleteButtons);                            //olematut õppejõudu ei saa kustutada
+        }
+
+        /// <summary>
+        /// DELETE test: avab varem lisatud õppejõu kustutamise vaate, kontrollib et seal on õige õppejõud
+        /// ja kustutamise nupp, kinnitab kustutamise ja kontrollib, et suunati nimekirja, tabelist kadus
+        /// täpselt üks rida ja seda õppejõudu ei ole enam nimekirjas.
+        /// Test käivitatakse viimasena, sest kustutab õppejõu, mida teised testid kasutavad.
+        /// </summary>
+        [Fact]
+        [Order(10)]
+        public void Should_DeleteUniqueLecturer_FromDeleteView()
+        {
+            /* ülesseade */
+            IWebDriver driver = TestSetup_NavigateToIndex();
+            var tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            List<IWebElement> rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsBefore = rowsOfTable.Count;
+            bool isObjectFound = false;
+
+            /* tegevus */
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFound = true;
+                    var clickAction = row
+                        .FindElement(By.Id("IndexTableLecturerActions"))
+                        .FindElement(By.Id("IndexTableLecturerDelete_BTN"));
+                    clickAction.Click();
+                    WaitForNewPage(clickAction); //ootame, kuni uus leht laeb
+                    break;
+                }
+            }
+            Thread.Sleep(1000);
+            string delete_heading = driver.FindElement(By.TagName("h1")).Text;
+            string delete_id = driver.FindElement(By.Id("DD_LecturerGuid")).Text;
+            string delete_firstName = driver.FindElement(By.Id("DD_LecturerFirstName")).Text;
+            string deleteUrl = driver.Url;
+            IWebElement clickDelete = driver.FindElement(By.Id("DeleteDelete_BTN"));
+            clickDelete.Click();
+            WaitForNewPage(clickDelete); //ootame, kuni uus leht laeb
+            Thread.Sleep(1000); //ootame, kuni Index leht laeb
+            string urlAfterDelete = driver.Url;
+
+            //kontroll
+            bool isObjectFoundAfterDelete = false;
+            tableOfIndex = driver.FindElement(By.Id("IndexTable"));
+            rowsOfTable = tableOfIndex.FindElements(By.TagName("tr")).ToList();
+            rowsOfTable.RemoveAt(0);
+            int rowsAfter = rowsOfTable.Count;
+            foreach (var row in rowsOfTable)
+            {
+                var nameElement = row.FindElement(By.Id("IndexTableLecturerFirstName")).Text;
+                if (nameElement == thisRunGuid)
+                {
+                    isObjectFoundAfterDelete = true;
+                    break;
+                }
+            }
+            driver.Quit();
+
+            Assert.True(isObjectFound);                                    //enne kustutamist oli õppejõud olemas
+            Assert.Equal("Kustuta", delete_heading);                       //avati kustutamise vaade
+            Assert.Contains("/Lecturers/Delete/" + delete_id, deleteUrl);
+            Assert.Equal(thisRunGuid, delete_firstName);                   //kustutamise vaates oli õige õppejõud
+            Assert.EndsWith("/Lecturers", urlAfterDelete);                 //kustutamise järel suunati nimekirja
+            Assert.Equal(rowsBefore - 1, rowsAfter);                       //tabelist kadus täpselt üks rida
+            Assert.False(isObjectFoundAfterDelete);                        //õppejõudu ei ole enam nimekirjas
+        }
+
+        //eof
+
+        /// <summary>
+        /// Puhastab andmeväljad meetodile kaasaantud draiveri sessioonis
+        /// </summary>
+        /// <param name="driver">Hetkel käsitletav draiver</param>
+        private void DataClear_CreateUpdate(IWebDriver driver)
+        {
+            IWebElement createEntryFirstName = driver.FindElement(By.Id("CU_Lecturer_FirstName"));
+            createEntryFirstName.Clear();
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.Clear();
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.Clear();
+        }
+
+        /// <summary>
+        /// Puhastab andmeväljad meetodile kaasaantud draiveri sessioonis
+        /// välja arvatud eesnime väli (eesnimes hoitakse testimiseks vajalikku unikaalset Guidi)
+        /// </summary>
+        /// <param name="driver">Hetkel käsitletav draiver</param>
+        private void DataClear_CreateUpdate_SaveName(IWebDriver driver)
+        {
+            IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+            createEntryLastName.Clear();
+            IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+            createEntryQualifications.Clear();
+        }
+
+        /// <summary>
+        /// Meetod mis testimise eesmärgil sisestab lehel õppejõu andmeid, on võimalik konfigureerida.
+        /// </summary>
+        /// <param name="driver">WebDriver mida hetkel test rakendab</param>
+        /// <param name="isOneOrTwo">Muutuja mis valib kahe erineva andmekomplekti vahel</param>
+        /// <param name="updateName">Muutuja mis ütleb kas eesnime on vaja muuta (eesnimes hoitakse testimiseks vajalikku unikaalset Guidi)</param>
+        /// <returns>Tagastab lisatud Guidi stringi kujul mis pandi eesnime välja (Kui on konfigureeritud nii)</returns>
+        private static string DataEntry_Lecturer(IWebDriver driver, bool isOneOrTwo = false, bool updateName = true)
+        {
+            Guid generatedId = Guid.NewGuid();
+            if (updateName)
+            {
+                IWebElement createEntryFirstName = driver.FindElement(By.Id("CU_Lecturer_FirstName"));
+                createEntryFirstName.SendKeys(generatedId.ToString());
+            }
+
+            if (!isOneOrTwo)
+            {
+                IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+                createEntryLastName.SendKeys("Oleinik");
+                IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+                createEntryQualifications.SendKeys("Inglise keel C1, IELTS");
+            }
+            else
+            {
+                IWebElement createEntryLastName = driver.FindElement(By.Id("CU_Lecturer_LastName"));
+                createEntryLastName.SendKeys("Speek");
+                IWebElement createEntryQualifications = driver.FindElement(By.Id("CU_Lecturer_Qualifications"));
+                createEntryQualifications.SendKeys("Saksa keel B2, eksamineerija");
+            }
+            return generatedId.ToString();
+        }
+
+        /// <summary>
+        /// Ülesseade meetod mis tekitab draiveri, navigeerib aadressile ja vajutab Õppejõudude lingile.
+        /// </summary>
+        /// <returns>Tagastab testisiseselt kasutatava draiveri</returns>
+        private static IWebDriver TestSetup_NavigateToIndex()
+        {
+            IWebDriver driver = new ChromeDriver(); //brauserit juhtiv ja seal tegutsev draiver
+            driver.Manage().Window.Maximize(); //suur aken, et footer ei kataks nuppe
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5); //ootame, kuni element lehele ilmub
+            driver.Url = "http://localhost:5234/"; //navigeeritav aadress
+            IWebElement navigateToLecturers = driver.FindElement(By.LinkText("Õppejõud"));//otsime testitava osa lingi
+            navigateToLecturers.Click(); //simuleeritud tegevus elemendiga, antud juhul klikk
+            WaitForNewPage(navigateToLecturers); //ootame, kuni uus leht laeb
+            return driver;
+        }
+        /// <summary>
+        /// Ootab, kuni pärast klikki vana leht kaob (element muutub "stale"), ehk uus leht on laadimas/laetud.
+        /// </summary>
+        /// <param name="clickedElement">Element millele just klikiti</param>
+        private static void WaitForNewPage(IWebElement clickedElement)
+        {
+            for (int i = 0; i < 100; i++) //max 10 sekundit
+            {
+                try
+                {
+                    _ = clickedElement.Enabled; //kui vana leht on veel alles, see õnnestub
+                    Thread.Sleep(100);
+                }
+                catch (StaleElementReferenceException)
+                {
+                    return; //vana leht on kadunud
+                }
+            }
+        }
+    }
+}
